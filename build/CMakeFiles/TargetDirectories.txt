@@ -1,0 +1,4 @@
+C:/MGU/Proga/GitHub/interpreter/build/CMakeFiles/MyExecutable.dir
+C:/MGU/Proga/GitHub/interpreter/build/CMakeFiles/Run.dir
+C:/MGU/Proga/GitHub/interpreter/build/CMakeFiles/ALL_BUILD.dir
+C:/MGU/Proga/GitHub/interpreter/build/CMakeFiles/ZERO_CHECK.dir
