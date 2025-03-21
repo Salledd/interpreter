@@ -17,43 +17,49 @@ std::vector<Token> Lexer::tokenize() {
 Token Lexer::extract() {
     while (index < input.size() && std::isspace(input[index])) ++index;
     if (index >= input.size()) return {TokenType::END, ""};
+    if (input[index] == '/' && (input[index + 1] == '/' || input[index + 1] == '*')){
+        extract_comment();
+        return extract();
+    }
     if (std::isdigit(input[index])) return extract_number();
     if (std::isalpha(input[index]) || input[index] == '_') return extract_identifier();
     if (input[index] == '"') return extract_string();
     if (input[index] == '\'') return extract_char();
-    if (input[index] == '/' && (input[index + 1] == '/' || input[index + 1] == '*')){
-        extract_comment();
-        return extract();
+    if (input[index] == '.') {
+        if (index + 1 < input.size() && std::isdigit(input[index + 1])) {      
+            return extract_number();
+        }
+        return extract_operator();
     }
     return extract_operator();
 }
 
 Token Lexer::extract_number() {
     std::size_t start = index;
-    bool is_double = false;
     std::string value;
 
     if (input[index] == '.') {  
         // Число начинается с точки
-        is_double = true;
         value = "0";    // .1  ->  0.1 
         value += input[index++];
         while (std::isdigit(input[index])) value += input[index++];
+        return {TokenType::NUM_FLOAT , value};
     } else {
         // Число начинается с цифры 
         while (std::isdigit(input[index])) value += input[index++];
         if (input[index] == '.') {
-            is_double = true;
             value += input[index++];
             while (std::isdigit(input[index])) value += input[index++];
+            return {TokenType::NUM_FLOAT , value};
         }
     }
     // Если число заканчивается на .
-    if (is_double && value.back() == '.') {
+    if (value.back() == '.') {
         value += "0";  // 1. ->  1.0
+        return {TokenType::NUM_FLOAT , value};
     }
 
-    return {is_double ? TokenType::TYPE_DOUBLE : TokenType::TYPE_INT, value};
+    return {TokenType::NUM_INT, value};
 }
 
 
@@ -61,27 +67,72 @@ Token Lexer::extract_identifier() {
     std::size_t start = index;
     while (std::isalnum(input[index]) || input[index] == '_') ++index;
     std::string name = input.substr(start, index - start);
-    if (keywords.find(name) != keywords.end()) {
-        return {keywords.at(name), name};
+    if (auto it = keywords.find(name); it != keywords.end()) {
+        return {it->second, name};
     }
+    if(name == "True") return {TokenType::BOOL, name};
+    if(name == "False") return {TokenType::BOOL, name};
     return {TokenType::ID, name};
 }
 
 Token Lexer::extract_string() {
     std::size_t start = ++index;
-    while (input[index] != '"') ++index;
-    std::string value = input.substr(start, index - start);
-    ++index;
+    std::string value;
+    
+    while (index < input.size() && input[index] != '"') {
+        if (input[index] == '\\') {
+            ++index;
+            if (index >= input.size()) break;
+            switch (input[index]) {
+                case 'n': value += '\n'; break;
+                case 't': value += '\t'; break;
+                case 'r': value += '\r'; break;
+                case '\\': value += '\\'; break;
+                case '"': value += '"'; break;
+                case '\'': value += '\''; break;
+                case '0': value += '\0'; break;
+                default: value += input[index]; break;
+            }
+        } else {
+            value += input[index];
+        }
+        ++index;
+    }
+    if (index < input.size() && input[index] == '"') ++index; // пропускаем закрывающую кавычку
+    else throw std::runtime_error("Unterminated string literal");
+
     return {TokenType::STRING, value};
 }
 
+
 Token Lexer::extract_char() {
-    std::size_t start = ++index;
-    while (input[index] != '\'') ++index;
-    std::string value = input.substr(start, index - start);
+    ++index; // пропускаем открывающую '
+    if (index >= input.size()) throw std::runtime_error("Unterminated char literal");
+
+    char ch;
+    if (input[index] == '\\') {
+        ++index;
+        if (index >= input.size()) throw std::runtime_error("Unterminated escape sequence in char literal");
+        switch (input[index]) {
+            case 'n': ch = '\n'; break;
+            case 't': ch = '\t'; break;
+            case 'r': ch = '\r'; break;
+            case '\\': ch = '\\'; break;
+            case '\'': ch = '\''; break;
+            case '0': ch = '\0'; break;
+            default: ch = input[index]; break;
+        }
+    } else {
+        ch = input[index];
+    }
     ++index;
-    return {TokenType::CHAR, value};
+
+    if (index >= input.size() || input[index] != '\'') throw std::runtime_error("Unterminated char literal");
+    ++index; // пропускаем закрывающую '
+
+    return {TokenType::CHAR, std::string(1, ch)};
 }
+
 
 Token Lexer::extract_operator() {
     std::string op;
@@ -98,37 +149,35 @@ Token Lexer::extract_operator() {
 
 void Lexer::extract_comment() {
     if (input[index + 1] == '/') {  
-        // Однострочный комментарий: игнорируем до конца строки
         while (index < input.size() && input[index] != '\n') ++index;
     } else {  
-        // Многострочный комментарий: игнорируем до */
         index += 2;  
         while (index + 1 < input.size() && !(input[index] == '*' && input[index + 1] == '/')) ++index;
         index += 2;  
     }
 }
 
-
 const std::unordered_map<std::string, TokenType> Lexer::keywords = {
-
     {"int", TokenType::TYPE_INT}, {"double", TokenType::TYPE_DOUBLE}, 
     {"char", TokenType::TYPE_CHAR}, {"bool", TokenType::TYPE_BOOL}, {"void", TokenType::TYPE_VOID},
 
+    {"True", TokenType::BOOL}, {"False", TokenType::BOOL},
+
+    {"struct", TokenType::KW_STRUCT},
     {"if", TokenType::KW_IF}, {"else", TokenType::KW_ELSE}, {"while", TokenType::KW_WHILE}, 
     {"for", TokenType::KW_FOR}, {"return", TokenType::KW_RETURN}, {"break", TokenType::KW_BREAK}, 
     {"continue", TokenType::KW_CONTINUE},
 
     {"sizeof", TokenType::KW_SIZEOF}, {"read", TokenType::KW_READ}, {"print", TokenType::KW_PRINT},
-    {"const", TokenType::KW_CONST}, {"static_assert", TokenType::KW_STATIC_ASSERT}, 
-    {"assert", TokenType::KW_ASSERT}, {"exit", TokenType::KW_EXIT}
+    {"const", TokenType::KW_CONST}, {"assert", TokenType::KW_ASSERT}, 
+    {"assert", TokenType::KW_ASSERT}, {"exit", TokenType::KW_EXIT},
+
 };
-
-
 
 const std::unordered_map<std::string, TokenType> Lexer::operators = {
     {"+", TokenType::PLUS},   {"-", TokenType::MINUS}, {"*", TokenType::STAR},
     {"/", TokenType::SLASH},  {"%", TokenType::MOD},   {"=", TokenType::ASSIGN},
-    {"++", TokenType::INCREMENT}, {"--", TokenType::DECREMENT},
+    {"++", TokenType::INC}, {"--", TokenType::DEC},
     {"+=", TokenType::PLUS_ASSIGN}, {"-=", TokenType::MINUS_ASSIGN},
     {"*=", TokenType::MULT_ASSIGN}, {"/=", TokenType::DIV_ASSIGN},
     {"%=", TokenType::MOD_ASSIGN},

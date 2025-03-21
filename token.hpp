@@ -5,13 +5,16 @@
 enum class TokenType {
     TYPE_INT, TYPE_DOUBLE, TYPE_CHAR, TYPE_BOOL, TYPE_VOID,
 
-    KW_IF, KW_ELSE, KW_WHILE, KW_FOR, KW_RETURN, KW_BREAK, KW_CONTINUE,
-    KW_SIZEOF, KW_READ, KW_PRINT, KW_CONST, KW_STATIC_ASSERT, KW_ASSERT, KW_EXIT,
+    KW_STRUCT,
+    KW_IF, KW_ELSE, KW_WHILE, KW_DO, KW_FOR, KW_RETURN, KW_BREAK, KW_CONTINUE,
+    KW_SIZEOF, KW_READ, KW_PRINT, KW_CONST, KW_ASSERT, KW_EXIT,
 
-    ID, STRING, CHAR, END,
+    ID,
+    
+    STRING, CHAR, NUM_INT, NUM_FLOAT, BOOL,
 
     PLUS, MINUS, STAR, SLASH, MOD,          // +  -  *  /  %
-    INCREMENT, DECREMENT,                   // ++  --
+    INC, DEC,                   // ++  --
     AND, OR, NOT,                           // &&  ||  !
     EQ, NEQ, GT, LT, GE, LE,                // ==  !=  >  <  >=  <=
     ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN,      // =  +=  -=
@@ -21,6 +24,8 @@ enum class TokenType {
     LPAREN, RPAREN,                         // ()
     LBRACE, RBRACE,                         // {}
     LBRACKET, RBRACKET,                     // []
+
+    END,
 };
 
 
