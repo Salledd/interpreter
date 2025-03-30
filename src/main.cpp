@@ -1,12 +1,24 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "visitor.hpp"
 
+std::string readFile(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file) {
+        throw std::runtime_error("Couldn't open the file: " + filename);
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
+
 int main() {
     try{
-        std::string code = "int main() { int x = 3; '\n' bool y = True; // bla bla bla\n if (x >= 15) { print(x); } }";
-        
+        //std::string code = "int main() { int x = 3; bool y = True; // bla bla bla\n if (x >= 15) { print(x); } }";
+        std::string code = readFile("C:\\MGU\\Proga\\GitHub\\interpreter\\code.txt");
         Lexer lexer(code);
         std::vector<Token> tokens = lexer.tokenize();
 

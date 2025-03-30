@@ -1,40 +1,45 @@
 #include <iostream>
+#include <memory>
 #include "visitor.hpp"
 
 void PrintVisitor::visit(LiteralExpr& expr)  { 
-    std::cout << "LiteralExpr(value=" << expr.value << ")";
+    std::cout << "Literal(" << expr.value << ")";
 }
 
 void PrintVisitor::visit(VariableExpr& expr)  { 
-    std::cout << "VariableExpr(name=" << expr.name << ")";
+    std::cout << "Var(" << expr.name << ")";
 }
 
 void PrintVisitor::visit(BinaryExpr& expr)  { 
-    std::cout << "BinaryExpr(op=" << expr.op << ", left=";
+    std::cout << "Binary(" << expr.op << ", ";
     expr.left.get()->accept(*this); 
-    std::cout << ", right=";
+    std::cout << ", ";
     expr.right.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(UnaryExpr& expr)  { 
-    std::cout << "UnaryExpr(op=" << expr.op << ", operand=";
+    std::cout << "Unary(" << expr.op << ", ";
     expr.operand.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(TernaryExpr& expr)  { 
-    std::cout << "TernaryExpr(cond=";
+    std::cout << "Ternary(";
     expr.cond.get()->accept(*this); 
-    std::cout << ", true_expr=";
+    std::cout << " ? ";
     expr.true_expr.get()->accept(*this); 
-    std::cout << ", false_expr=";
+    std::cout << " : ";
     expr.false_expr.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(CallExpr& expr)  { 
-    std::cout << "CallExpr(callee=" << expr.callee << ", args=[";
+    if (auto callee = dynamic_cast<VariableExpr*>(expr.callee.get())) {
+        std::cout << "Call(" << callee->name << ", [";
+    } else {
+        std::cout << "Call(" << "!null" << ", [";
+    }
     for (auto& arg : expr.args) {
         arg.get()->accept(*this);
         if (&arg != &expr.args.back()) std::cout << ", ";
@@ -43,58 +48,58 @@ void PrintVisitor::visit(CallExpr& expr)  {
 }
 
 void PrintVisitor::visit(MemberAccessExpr& expr)  { 
-    std::cout << "MemberAccessExpr(object=";
+    std::cout << "Access(";
     expr.object.get()->accept(*this); 
-    std::cout << ", member=" << expr.member << ")";
+    std::cout << "." << expr.member << ")";
 }
 
 void PrintVisitor::visit(ArrayAccessExpr& expr)  { 
-    std::cout << "ArrayAccessExpr(array=";
+    std::cout << "Array(";
     expr.array.get()->accept(*this); 
-    std::cout << ", index=";
+    std::cout << "[";
     expr.index.get()->accept(*this); 
-    std::cout << ")";
+    std::cout << "])";
 }
 
 void PrintVisitor::visit(LogicalExpr& expr)  { 
-    std::cout << "LogicalExpr(op=" << expr.op << ", left=";
+    std::cout << "Logical(" << expr.op << ", ";
     expr.left.get()->accept(*this); 
-    std::cout << ", right=";
+    std::cout << ", ";
     expr.right.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(PostfixExpr& expr)  { 
-    std::cout << "PostfixExpr(op=" << expr.op << ", operand=";
+    std::cout << "Postfix(";
     expr.operand.get()->accept(*this); 
-    std::cout << ")";
+    std::cout << expr.op << ")";
 }
 
 void PrintVisitor::visit(AssignExpr& expr)  { 
-    std::cout << "AssignExpr(left=";
+    std::cout << "Assign(";
     expr.left.get()->accept(*this); 
-    std::cout << ", right=";
+    std::cout << " = ";
     expr.right.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(ExprStmt& stmt)  { 
-    std::cout << "ExprStmt(expr=";
+    std::cout << "Expr(";
     stmt.expr.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(VarDecl& stmt)  { 
-    std::cout << "VarDeclStmt(type=" << stmt.type << ", name=" << stmt.name;
+    std::cout << "VarDecl(" << stmt.type << " " << stmt.name;
     if (stmt.init) {
-        std::cout << ", init=";
+        std::cout << " = ";
         stmt.init.get()->accept(*this);
     }
     std::cout << ")";
 }
 
 void PrintVisitor::visit(BlockStmt& stmt)  { 
-    std::cout << "BlockStmt(statements=[";
+    std::cout << "Block([";
     for (auto& statement : stmt.statements) {
         statement.get()->accept(*this);
         if (&statement != &stmt.statements.back()) std::cout << ", ";
@@ -103,75 +108,75 @@ void PrintVisitor::visit(BlockStmt& stmt)  {
 }
 
 void PrintVisitor::visit(IfStmt& stmt)  { 
-    std::cout << "IfStmt(condition=";
+    std::cout << "If(";
     stmt.condition.get()->accept(*this); 
-    std::cout << ", then_branch=";
+    std::cout << ", ";
     stmt.then_branch.get()->accept(*this); 
     if (stmt.else_branch) {
-        std::cout << ", else_branch=";
+        std::cout << " else ";
         stmt.else_branch.get()->accept(*this); 
     }
     std::cout << ")";
 }
 
 void PrintVisitor::visit(WhileStmt& stmt)  { 
-    std::cout << "WhileStmt(condition=";
+    std::cout << "While(";
     stmt.condition.get()->accept(*this); 
-    std::cout << ", body=";
+    std::cout << ", ";
     stmt.body.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(ForStmt& stmt)  { 
-    std::cout << "ForStmt(init=";
+    std::cout << "For(";
     stmt.init.get()->accept(*this); 
-    std::cout << ", condition=";
+    std::cout << "; ";
     stmt.condition.get()->accept(*this); 
-    std::cout << ", increment=";
+    std::cout << "; ";
     stmt.increment.get()->accept(*this); 
-    std::cout << ", body=";
+    std::cout << ", ";
     stmt.body.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(ReturnStmt& stmt)  { 
-    std::cout << "ReturnStmt(expr=";
+    std::cout << "Return(";
     if (stmt.expr) stmt.expr.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(BreakStmt&)  { 
-    std::cout << "BreakStmt()";
+    std::cout << "Break";
 }
 
 void PrintVisitor::visit(ContinueStmt&)  { 
-    std::cout << "ContinueStmt()";
+    std::cout << "Continue";
 }
 
 void PrintVisitor::visit(PrintStmt& stmt)  { 
-    std::cout << "PrintStmt(expr=";
+    std::cout << "Print(";
     stmt.expr.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(ReadStmt& stmt)  { 
-    std::cout << "ReadStmt(var_name=" << stmt.expr << ")";
+    std::cout << "Read(" << stmt.expr << ")";
 }
 
 void PrintVisitor::visit(AssertStmt& stmt)  { 
-    std::cout << "AssertStmt(expr=";
+    std::cout << "Assert(";
     stmt.expr.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(ExitStmt& stmt)  { 
-    std::cout << "ExitStmt(expr=";
+    std::cout << "Exit(";
     if (stmt.expr) stmt.expr.get()->accept(*this); 
     std::cout << ")";
 }
 
 void PrintVisitor::visit(StructDecl& decl)  { 
-    std::cout << "StructDecl(name=" << decl.name << ", fields=[";
+    std::cout << "Struct(" << decl.name << ", [";
     for (auto& field : decl.fields) {
         visit(field);
         if (&field != &decl.fields.back()) std::cout << ", ";
@@ -180,25 +185,24 @@ void PrintVisitor::visit(StructDecl& decl)  {
 }
 
 void PrintVisitor::visit(FunctionDecl& decl)  { 
-    std::cout << "FunctionDecl(return_type=" << decl.return_type
-                << ", name=" << decl.name << ", params=[";
+    std::cout << "Func(" << decl.return_type << " " << decl.name << ", [";
     for (auto& param : decl.params) {
-        std::cout << "(" << param.first << ", " << param.second << ")";
+        std::cout << param.first << " " << param.second;
         if (&param != &decl.params.back()) std::cout << ", ";
     }
-    std::cout << "], body=";
+    std::cout << "], ";
     decl.body.get()->accept(*this);
     std::cout << ")";
 }
 
 void PrintVisitor::visit(GlobalVarDecl& decl)  { 
-    std::cout << "GlobalVarDecl(var=";
+    std::cout << "Global(";
     visit(decl.var);
     std::cout << ")";
 }
 
 void PrintVisitor::visit(TranslationUnitNode& node)  {
-    std::cout << "TranslationUnitNode(statements=[" << std::endl;
+    std::cout << "Program([" << std::endl;
     for (auto& stmt : node.statements) {
         stmt.get()->accept(*this);
         std::cout << std::endl;
@@ -207,9 +211,18 @@ void PrintVisitor::visit(TranslationUnitNode& node)  {
 }
 
 void PrintVisitor::visit(MainFunctionNode& node)  {
-    std::cout << "MainFunctionNode(body=";
+    std::cout << "Main(";
     node.body.get()->accept(*this);
     std::cout << ")";
+}
+
+void PrintVisitor::visit(ArrayInitExpr& expr) {
+    std::cout << "ArrayInit([";
+    for (auto& element : expr.elements) {
+        element->accept(*this);
+        if (&element != &expr.elements.back()) std::cout << ", ";
+    }
+    std::cout << "])";
 }
 
 #include "ast.hpp"
@@ -244,4 +257,5 @@ void FunctionDecl::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void GlobalVarDecl::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void TranslationUnitNode::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void MainFunctionNode::accept(ASTVisitor& visitor) { visitor.visit(*this); }
+void ArrayInitExpr::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 

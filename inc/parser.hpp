@@ -26,15 +26,20 @@ private:
     // грамматические правила
     void translation_unit();
     std::shared_ptr<Decl> declaration();
-    std::shared_ptr<MainFunctionNode> main_function(); // Обработка int main()
     std::shared_ptr<Decl> var_decl();
+    std::shared_ptr<Stmt> expr_statement();
+    std::shared_ptr<MainFunctionNode> main_function(); // Обработка int main()
     std::shared_ptr<FunctionDecl> func_decl();
     std::shared_ptr<Decl> struct_decl();
 
     std::shared_ptr<Stmt> statement();
-    std::shared_ptr<Stmt> expr_statement();
     std::shared_ptr<Stmt> conditional_statement();
     std::shared_ptr<Stmt> loop_statement();
+    std::shared_ptr<Stmt> while_statement();
+    std::shared_ptr<Stmt> do_while_statement();
+    std::shared_ptr<Stmt> for_statement();
+    std::shared_ptr<Stmt> break_statement();
+    std::shared_ptr<Stmt> continue_statement();
     std::shared_ptr<Stmt> return_statement();
     std::shared_ptr<Stmt> io_statement();
     std::shared_ptr<Stmt> assert_statement();
@@ -51,7 +56,11 @@ private:
     std::shared_ptr<Expr> comparison();
     std::shared_ptr<Expr> term();
     std::shared_ptr<Expr> factor();
+    std::shared_ptr<Expr> binary();
     std::shared_ptr<Expr> unary();
     std::shared_ptr<Expr> postfix();
     std::shared_ptr<Expr> primary();
+    std::shared_ptr<Expr> ternary_expression();
+    std::shared_ptr<Expr> cast_expression();
+    std::shared_ptr<Expr> array_initializer(); // Обработка инициализации массивов
 };

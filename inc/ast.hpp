@@ -110,6 +110,21 @@ struct ArrayAccessExpr : Expr {
     void accept(ASTVisitor& visitor) override;
 };
 
+// Узел для приведения типов
+struct CastExpr : Expr {
+    std::string type;
+    ExprPtr operand;
+    CastExpr(const std::string& t, ExprPtr o) : type(t), operand(std::move(o)) {}
+    void accept(ASTVisitor& visitor) override;
+};
+
+// Инициализация массива
+struct ArrayInitExpr : Expr {
+    std::vector<ExprPtr> elements;
+    ArrayInitExpr(std::vector<ExprPtr> elems) : elements(std::move(elems)) {}
+    void accept(ASTVisitor& visitor) override;
+};
+
 // Инструкция-выражение
 struct ExprStmt : Stmt {
     ASTNodePtr expr;
@@ -200,7 +215,8 @@ struct VarDecl : Decl {
     std::string type;
     std::string name;
     ExprPtr init;
-    VarDecl(const std::string& t, const std::string& n, ExprPtr i = nullptr) : type(t), name(n), init(std::move(i)) {}
+    bool constant; 
+    VarDecl(const std::string& t, const std::string& n, ExprPtr i = nullptr, bool const_flag = false) : type(t), name(n), init(std::move(i)), constant(const_flag) {}
     void accept(ASTVisitor& visitor) override;
 };
 

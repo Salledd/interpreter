@@ -14,6 +14,7 @@ struct ASTVisitor {
     virtual void visit(LogicalExpr& expr) = 0;
     virtual void visit(PostfixExpr& expr) = 0;
     virtual void visit(AssignExpr& expr) = 0;
+    virtual void visit(ArrayInitExpr& expr) = 0;
 
     virtual void visit(ExprStmt& stmt) = 0;
     virtual void visit(VarDecl& stmt) = 0;
@@ -51,6 +52,7 @@ struct PrintVisitor : ASTVisitor {
     void visit(LogicalExpr& expr) override;
     void visit(PostfixExpr& expr) override;
     void visit(AssignExpr& expr) override;
+    void visit(ArrayInitExpr& expr) override;
 
     void visit(ExprStmt& stmt) override;
     void visit(VarDecl& stmt) override;

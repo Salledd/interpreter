@@ -154,6 +154,7 @@ CMakeFiles/main.dir/src/main.cpp.obj: C:/MGU/Proga/GitHub/interpreter/src/main.c
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/basic_string.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/basic_string.tcc \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/char_traits.h \
+  c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/codecvt.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/concept_check.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/cpp_type_traits.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/cxxabi_forced.h \
@@ -162,6 +163,7 @@ CMakeFiles/main.dir/src/main.cpp.obj: C:/MGU/Proga/GitHub/interpreter/src/main.c
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/exception.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/exception_defines.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/exception_ptr.h \
+  c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/fstream.tcc \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/functexcept.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/functional_hash.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/hash_bytes.h \
@@ -188,6 +190,7 @@ CMakeFiles/main.dir/src/main.cpp.obj: C:/MGU/Proga/GitHub/interpreter/src/main.c
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/shared_ptr.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/shared_ptr_atomic.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/shared_ptr_base.h \
+  c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/sstream.tcc \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/std_abs.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/stl_algobase.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/stl_bvector.h \
@@ -228,6 +231,7 @@ CMakeFiles/main.dir/src/main.cpp.obj: C:/MGU/Proga/GitHub/interpreter/src/main.c
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/ext/numeric_traits.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/ext/string_conversions.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/ext/type_traits.h \
+  c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/fstream \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/initializer_list \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/ios \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/iosfwd \
@@ -236,8 +240,10 @@ CMakeFiles/main.dir/src/main.cpp.obj: C:/MGU/Proga/GitHub/interpreter/src/main.c
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/limits \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/memory \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/atomic_word.h \
+  c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/basic_file.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/c++allocator.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/c++config.h \
+  c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/c++io.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/c++locale.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/cpu_defines.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/ctype_base.h \
@@ -248,6 +254,7 @@ CMakeFiles/main.dir/src/main.cpp.obj: C:/MGU/Proga/GitHub/interpreter/src/main.c
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/os_defines.h \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/new \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/ostream \
+  c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/sstream \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/stdexcept \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/streambuf \
   c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/string \
@@ -592,6 +599,8 @@ c:/mingw/include/msvcrtver.h:
 
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/std_abs.h:
 
+c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/sstream:
+
 c:/mingw/include/wchar.h:
 
 c:/mingw/include/process.h:
@@ -746,6 +755,8 @@ c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/atomic_word.h:
 
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/c++allocator.h:
 
+c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/basic_file.h:
+
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/c++config.h:
 
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/c++locale.h:
@@ -798,6 +809,10 @@ c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/atomic_lockfree_defines.h:
 
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/basic_ios.h:
 
+c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/codecvt.h:
+
+c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/fstream.tcc:
+
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/ios_base.h:
 
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/istream.tcc:
@@ -814,6 +829,10 @@ c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/refwrap.h:
 
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/shared_ptr_atomic.h:
 
+c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/ctype_base.h:
+
+c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/sstream.tcc:
+
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/stl_raw_storage_iter.h:
 
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/bits/streambuf.tcc:
@@ -826,13 +845,15 @@ c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/cwctype:
 
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/ext/concurrence.h:
 
+c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/fstream:
+
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/ios:
 
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/iostream:
 
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/istream:
 
-c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/ctype_base.h:
+c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/c++io.h:
 
 c:/mingw/lib/gcc/mingw32/9.2.0/include/c++/mingw32/bits/error_constants.h:
 

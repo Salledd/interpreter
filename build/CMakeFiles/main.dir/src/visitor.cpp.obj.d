@@ -105,8 +105,6 @@ CMakeFiles/main.dir/src/visitor.cpp.obj: \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\ostream.tcc \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\istream \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\istream.tcc \
- C:/MGU/Proga/GitHub/interpreter/inc/visitor.hpp \
- C:/MGU/Proga/GitHub/interpreter/inc/ast.hpp \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\memory \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_construct.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_uninitialized.h \
@@ -129,6 +127,8 @@ CMakeFiles/main.dir/src/visitor.cpp.obj: \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\atomic_base.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\atomic_lockfree_defines.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\backward\auto_ptr.h \
+ C:/MGU/Proga/GitHub/interpreter/inc/visitor.hpp \
+ C:/MGU/Proga/GitHub/interpreter/inc/ast.hpp \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\vector \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_vector.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_bvector.h \
