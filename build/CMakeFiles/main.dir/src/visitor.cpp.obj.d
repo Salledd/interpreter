@@ -4,6 +4,7 @@ CMakeFiles/main.dir/src/visitor.cpp.obj: \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\mingw32\bits\c++config.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\mingw32\bits\os_defines.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\mingw32\bits\cpu_defines.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\pstl\pstl_config.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\ostream \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\ios \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\iosfwd \
@@ -14,15 +15,11 @@ CMakeFiles/main.dir/src/visitor.cpp.obj: \
  c:\mingw\include\wchar.h c:\mingw\include\_mingw.h \
  c:\mingw\include\msvcrtver.h c:\mingw\include\w32api.h \
  c:\mingw\include\sdkddkver.h c:\mingw\include\features.h \
- c:\mingw\include\wctype.h \
- c:\mingw\lib\gcc\mingw32\9.2.0\include\stddef.h \
- c:\mingw\include\sys\types.h c:\mingw\include\stdio.h \
+ c:\mingw\include\stdio.h c:\mingw\lib\gcc\mingw32\9.2.0\include\stddef.h \
  c:\mingw\include\sys/types.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\stdarg.h \
- c:\mingw\include\stdlib.h c:\mingw\include\direct.h \
- c:\mingw\include\sys/stat.h c:\mingw\include\conio.h \
- c:\mingw\include\io.h c:\mingw\include\stdint.h c:\mingw\include\time.h \
- c:\mingw\include\locale.h c:\mingw\include\process.h \
+ c:\mingw\include\stdlib.h c:\mingw\include\time.h \
+ c:\mingw\include\sys\types.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\exception \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\exception.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\exception_ptr.h \
@@ -78,15 +75,17 @@ CMakeFiles/main.dir/src/visitor.cpp.obj: \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\basic_string.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\ext\alloc_traits.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\alloc_traits.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\string_view \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\limits \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\functional_hash.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\string_view.tcc \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\ext\string_conversions.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\cstdlib \
  c:\mingw\include\stdlib.h c:\mingw\include\errno.h \
- c:\mingw\include\alloca.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\std_abs.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\cstdio \
  c:\mingw\include\stdio.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\cerrno \
- c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\functional_hash.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\basic_string.tcc \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\locale_classes.tcc \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\system_error \
@@ -97,6 +96,7 @@ CMakeFiles/main.dir/src/visitor.cpp.obj: \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\basic_ios.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\locale_facets.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\cwctype \
+ c:\mingw\include\wctype.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\mingw32\bits\ctype_base.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\streambuf_iterator.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\mingw32\bits\ctype_inline.h \
@@ -108,13 +108,13 @@ CMakeFiles/main.dir/src/visitor.cpp.obj: \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\memory \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_construct.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_uninitialized.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\utility \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_relops.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_tempbuf.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_raw_storage_iter.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\ext\concurrence.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\uses_allocator.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\unique_ptr.h \
- c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\utility \
- c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_relops.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\tuple \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\array \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\invoke.h \
@@ -127,9 +127,22 @@ CMakeFiles/main.dir/src/visitor.cpp.obj: \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\atomic_base.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\atomic_lockfree_defines.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\backward\auto_ptr.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\pstl\glue_memory_defs.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\pstl\execution_defs.h \
  C:/MGU/Proga/GitHub/interpreter/inc/visitor.hpp \
  C:/MGU/Proga/GitHub/interpreter/inc/ast.hpp \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\vector \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_vector.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_bvector.h \
- c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\vector.tcc
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\vector.tcc \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\set \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_tree.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\node_handle.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\optional \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\enable_special_members.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_set.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_multiset.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\erase_if.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\variant \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\parse_numbers.h \
+ C:/MGU/Proga/GitHub/interpreter/inc/token.hpp

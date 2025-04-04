@@ -3,11 +3,24 @@
 #include "visitor.hpp"
 
 void PrintVisitor::visit(LiteralExpr& expr)  { 
-    std::cout << "Literal(" << expr.value << ")";
+    std::cout << "Literal(";
+    if(std::holds_alternative<int>(expr.value)) {
+        std::cout << std::get<int>(expr.value) << ")";
+    } else if (std::holds_alternative<double>(expr.value)) {
+        std::cout << std::get<double>(expr.value) << ")";
+    } else if (std::holds_alternative<bool>(expr.value)) {
+        std::cout << (std::get<bool>(expr.value) ? "true" : "false") << ")";
+    } else if (std::holds_alternative<char>(expr.value)) {
+        std::cout << "'" << std::get<char>(expr.value) << "')";
+    } else if (std::holds_alternative<std::string>(expr.value)) {
+        std::cout << "\"" << std::get<std::string>(expr.value) << "\")";
+    } else {
+        std::cout << "Unknown type)";
+    }
 }
 
-void PrintVisitor::visit(VariableExpr& expr)  { 
-    std::cout << "Var(" << expr.name << ")";
+void PrintVisitor::visit(IdExpr& expr)  { 
+    std::cout << "ID(" << expr.name << ")";
 }
 
 void PrintVisitor::visit(BinaryExpr& expr)  { 
@@ -35,7 +48,7 @@ void PrintVisitor::visit(TernaryExpr& expr)  {
 }
 
 void PrintVisitor::visit(CallExpr& expr)  { 
-    if (auto callee = dynamic_cast<VariableExpr*>(expr.callee.get())) {
+    if (auto callee = dynamic_cast<IdExpr*>(expr.callee.get())) {
         std::cout << "Call(" << callee->name << ", [";
     } else {
         std::cout << "Call(" << "!null" << ", [";
@@ -89,13 +102,28 @@ void PrintVisitor::visit(ExprStmt& stmt)  {
     std::cout << ")";
 }
 
-void PrintVisitor::visit(VarDecl& stmt)  { 
-    std::cout << "VarDecl(" << stmt.type << " " << stmt.name;
-    if (stmt.init) {
-        std::cout << " = ";
-        stmt.init.get()->accept(*this);
+void PrintVisitor::visit(VarDecl& stmt) {
+    std::cout << "VarDecl(" << stmt.type << ", [";
+    for (const auto& variable : stmt.variables) {
+        std::cout << variable.name;
+        if (variable.size) {
+            std::cout << "[";
+            variable.size->accept(*this);
+            std::cout << "]";
+        }
+        if (variable.init) {
+            std::cout << " = ";
+            variable.init->accept(*this);
+        }
+        if (&variable != &stmt.variables.back()) std::cout << ", ";
     }
-    std::cout << ")";
+    std::cout << "], Modifiers: [";
+    for (const auto& mod : stmt.modifiers.mods) {
+        if (mod == Modifier::Const) std::cout << "Const";
+        else if (mod == Modifier::Static) std::cout << "Static";
+        std::cout << " ";
+    }
+    std::cout << "])";
 }
 
 void PrintVisitor::visit(BlockStmt& stmt)  { 
@@ -163,12 +191,6 @@ void PrintVisitor::visit(ReadStmt& stmt)  {
     std::cout << "Read(" << stmt.expr << ")";
 }
 
-void PrintVisitor::visit(AssertStmt& stmt)  { 
-    std::cout << "Assert(";
-    stmt.expr.get()->accept(*this); 
-    std::cout << ")";
-}
-
 void PrintVisitor::visit(ExitStmt& stmt)  { 
     std::cout << "Exit(";
     if (stmt.expr) stmt.expr.get()->accept(*this); 
@@ -195,12 +217,6 @@ void PrintVisitor::visit(FunctionDecl& decl)  {
     std::cout << ")";
 }
 
-void PrintVisitor::visit(GlobalVarDecl& decl)  { 
-    std::cout << "Global(";
-    visit(decl.var);
-    std::cout << ")";
-}
-
 void PrintVisitor::visit(TranslationUnitNode& node)  {
     std::cout << "Program([" << std::endl;
     for (auto& stmt : node.statements) {
@@ -208,12 +224,6 @@ void PrintVisitor::visit(TranslationUnitNode& node)  {
         std::cout << std::endl;
     }
     std::cout << "])" << std::endl;
-}
-
-void PrintVisitor::visit(MainFunctionNode& node)  {
-    std::cout << "Main(";
-    node.body.get()->accept(*this);
-    std::cout << ")";
 }
 
 void PrintVisitor::visit(ArrayInitExpr& expr) {
@@ -225,11 +235,24 @@ void PrintVisitor::visit(ArrayInitExpr& expr) {
     std::cout << "])";
 }
 
+void PrintVisitor::visit(AssertDecl& decl) {
+    std::cout << "Assert(";
+    decl.expr->accept(*this);
+    if (!decl.message.empty()) {
+        std::cout << ", \"" << decl.message << "\"";
+    }
+    std::cout << ")";
+}
+
+void PrintVisitor::visit(TypedefDecl& decl) {
+    std::cout << "Typedef(" << decl.original_type << " as " << decl.alias_name << ")";
+}
+
 #include "ast.hpp"
 
 // Реализация методов accept
 void LiteralExpr::accept(ASTVisitor& visitor) { visitor.visit(*this); }
-void VariableExpr::accept(ASTVisitor& visitor) { visitor.visit(*this); }
+void IdExpr::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void BinaryExpr::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void UnaryExpr::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void AssignExpr::accept(ASTVisitor& visitor) { visitor.visit(*this); }
@@ -249,13 +272,12 @@ void BreakStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void ContinueStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void PrintStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void ReadStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
-void AssertStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
+void AssertDecl::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void ExitStmt::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void VarDecl::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void StructDecl::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void FunctionDecl::accept(ASTVisitor& visitor) { visitor.visit(*this); }
-void GlobalVarDecl::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void TranslationUnitNode::accept(ASTVisitor& visitor) { visitor.visit(*this); }
-void MainFunctionNode::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 void ArrayInitExpr::accept(ASTVisitor& visitor) { visitor.visit(*this); }
+void TypedefDecl::accept(ASTVisitor& visitor) { visitor.visit(*this); }
 

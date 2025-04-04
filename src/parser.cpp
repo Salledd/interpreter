@@ -1,7 +1,12 @@
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
+#include <unordered_map>
 #include "parser.hpp"
 #include "ast.hpp"
+
+const std::unordered_map<TokenType, Modifier> token_to_modifier = {
+    {TokenType::KW_CONST, Modifier::Const},
+};
 
 Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
 
@@ -21,7 +26,7 @@ bool Parser::match(TokenType type) {
 
 void Parser::expect(TokenType type, const std::string& error_msg) {
     if (!match(type)) //throw std::runtime_error("Expected " + error_msg + ", got: " + peek().value);
-        std::cout << "!Expected " + error_msg + ", got: " + peek().value << "(" + tokens[pos-1].value +" "+ peek().value +" "+ tokens[pos+1].value + ")" << std::endl ;
+        std::cout << "!Expected " + error_msg + ", got: " + peek().value << "(" + tokens[pos-1].value +" "+ peek().value +" " + (pos < tokens.size() ? tokens[pos+1].value : "" )+ ")" << std::endl ;
 }
 
 void Parser::parse() {
@@ -39,18 +44,11 @@ void Parser::translation_unit() {
     }
 }
 
-std::shared_ptr<MainFunctionNode> Parser::main_function() {
-    advance(); // пропуск 'int'
-    expect(TokenType::ID, "main");
-    expect(TokenType::LPAREN, "'(' after main");
-    expect(TokenType::RPAREN, "')' after main");
-    auto body = std::dynamic_pointer_cast<BlockStmt>(block_statement());
-    return std::make_shared<MainFunctionNode>(body);
-}
-
 std::shared_ptr<Decl> Parser::declaration() {
     if (match(TokenType::KW_STRUCT)) {
         return struct_decl();
+    } else if (match(TokenType::KW_TYPEDEF)) {
+        return typedef_decl();
     } else if (check(TokenType::TYPE_INT) || check(TokenType::TYPE_DOUBLE) ||
                check(TokenType::TYPE_CHAR) || check(TokenType::TYPE_BOOL) || check(TokenType::TYPE_VOID) ||
                check(TokenType::ID)) {
@@ -59,45 +57,136 @@ std::shared_ptr<Decl> Parser::declaration() {
         } else {
             return var_decl();
         }
-    }
+    } else if (match(TokenType::KW_ASSERT)) return assert_decl();
+
     throw std::runtime_error("Unexpected token in declaration: " + peek().value);
+}
+
+std::shared_ptr<Decl> Parser::typedef_decl() {
+    if (check(TokenType::KW_STRUCT)) {
+        // Сохраняем текущую позицию
+        size_t start_pos = pos;
+
+        // Пропускаем ключевое слово `struct`
+        advance();
+
+        // Пропускаем имя структуры (если есть)
+        std::string struct_name = "";
+        if (check(TokenType::ID)) {
+            struct_name = " " + advance().value;
+        }
+
+        // Пропускаем тело структуры
+        if (check(TokenType::LBRACE)) {
+            int brace_count = 1;
+            advance();
+            while (brace_count > 0 && pos < tokens.size()) {
+                if (match(TokenType::LBRACE)) {
+                    brace_count++;
+                } else if (match(TokenType::RBRACE)) {
+                    brace_count--;
+                } else {
+                    advance();
+                }
+            }
+        }
+
+        // Проверяем наличие псевдонима
+        if (!check(TokenType::ID)) {
+            expect(TokenType::ID, "Expected alias name after typedef struct");
+        }
+        auto alias_name = advance().value;
+
+        expect(TokenType::SEMICOLON, "';' after typedef struct declaration");
+
+        // Возвращаем позицию на `struct` для обработки структуры
+        pos = start_pos;
+        
+        return std::make_shared<TypedefDecl>("struct" + struct_name, alias_name);
+    } else {
+        // Обычный typedef
+        auto original_type = advance().value; // Пропускаем исходный тип
+        auto alias_name = advance().value;   // Пропускаем имя псевдонима
+        expect(TokenType::SEMICOLON, "';' after typedef declaration");
+
+        return std::make_shared<TypedefDecl>(original_type, alias_name);
+    }
+}
+
+Modifiers Parser::parse_modifiers() {
+    Modifiers modifiers;
+
+    while (true) {
+        auto it = token_to_modifier.find(peek().type);
+        if (it != token_to_modifier.end()) {
+            modifiers.add(it->second);
+            advance(); // Пропускаем токен модификатора
+        } else {
+            break; 
+        }
+    }
+
+    return modifiers;
+}
+
+std::shared_ptr<Decl> Parser::var_decl() {
+    if(match(TokenType::SEMICOLON)) return nullptr; // пустая декларация
+    Modifiers modifiers = parse_modifiers();
+
+    auto type = advance().value; // пропуск type
+
+    std::vector<Variable> variables;
+
+    do {
+        auto name = advance().value;
+        ExprPtr size = nullptr;
+        ExprPtr init = nullptr;
+
+        if (match(TokenType::LBRACKET)) { // Обработка массива
+            if (!check(TokenType::RBRACKET)) {
+                size = expression(false); // Обработка size
+            }
+            expect(TokenType::RBRACKET, "']' after array size");
+        } 
+        if (match(TokenType::ASSIGN) || check(TokenType::LBRACE)) {
+            if (check(TokenType::LBRACE)) {
+                init = array_initializer();
+            } else {
+                init = expression(false);
+            }
+        }
+        variables.emplace_back(name, init, size); // ф-ция создает объект сразу в списке
+    } while (match(TokenType::COMMA));
+
+    expect(TokenType::SEMICOLON, "';' after variable declaration");
+    return std::make_shared<VarDecl>(type, variables, modifiers);
 }
 
 std::shared_ptr<Expr> Parser::array_initializer() {
     expect(TokenType::LBRACE, "'{' to start array initializer");
     std::vector<ExprPtr> elements;
     while (!check(TokenType::RBRACE)) {
-        elements.push_back(expression());
+        elements.push_back(expression(false));
         if (!check(TokenType::RBRACE)) expect(TokenType::COMMA, "',' between array elements");
     }
     expect(TokenType::RBRACE, "'}' to end array initializer");
     return std::make_shared<ArrayInitExpr>(elements);
 }
 
-std::shared_ptr<Decl> Parser::var_decl() {
-    bool cnst = false;
-    if (match(TokenType::KW_CONST)) {
-        cnst = true;
+std::shared_ptr<Decl> Parser::struct_decl() {
+    auto name = advance().value; // пропуск struct name
+    expect(TokenType::LBRACE, "'{' to start struct body");
+    std::vector<VarDecl> fields;
+    while (!check(TokenType::RBRACE)) {
+        fields.push_back(*std::dynamic_pointer_cast<VarDecl>(var_decl()));
     }
-    auto type = advance().value; // пропуск type
-    auto name = advance().value; // пропуск variable name
-    ExprPtr init = nullptr;
-
-    if (match(TokenType::LBRACKET)) { // Обработка массива
-        if (!check(TokenType::RBRACKET)) {
-            auto size = expression(); // пропуск size
-        }
-        expect(TokenType::RBRACKET, "']' after array size");
-        if (match(TokenType::ASSIGN) || check(TokenType::LBRACE)) {
-            init = array_initializer();
-        } else {
-            expect(TokenType::ASSIGN, "'=' after array declaration");///// переделать проверку
-        }
-    } else if (match(TokenType::ASSIGN)) { // Обычная инициализация
-        init = expression();
-    }
-    expect(TokenType::SEMICOLON, "';' after variable declaration");
-    return std::make_shared<VarDecl>(type, name, init, cnst);
+    expect(TokenType::RBRACE, "'}' to end struct body");
+    
+    // Имя псевдонима
+    match(TokenType::ID);
+      
+    expect(TokenType::SEMICOLON, "';' after struct declaration");
+    return std::make_shared<StructDecl>(name, fields);
 }
 
 std::shared_ptr<FunctionDecl> Parser::func_decl() {
@@ -131,18 +220,6 @@ std::shared_ptr<Stmt> Parser::block_statement() {
     return block;
 }
 
-std::shared_ptr<Decl> Parser::struct_decl() {
-    auto name = advance().value; // пропуск struct name
-    expect(TokenType::LBRACE, "'{' to start struct body");
-    std::vector<VarDecl> fields;
-    while (!check(TokenType::RBRACE)) {
-        fields.push_back(*std::dynamic_pointer_cast<VarDecl>(var_decl()));
-    }
-    expect(TokenType::RBRACE, "'}' to end struct body");
-    expect(TokenType::SEMICOLON, "';' after struct");
-    return std::make_shared<StructDecl>(name, fields);
-}
-
 std::shared_ptr<Stmt> Parser::statement() {
     if (match(TokenType::KW_IF)) return conditional_statement();
     if (match(TokenType::KW_WHILE)) return while_statement();
@@ -152,7 +229,6 @@ std::shared_ptr<Stmt> Parser::statement() {
     if (match(TokenType::KW_BREAK)) return break_statement();
     if (match(TokenType::KW_CONTINUE)) return continue_statement();
     if (match(TokenType::KW_PRINT) || match(TokenType::KW_READ)) return io_statement();
-    if (match(TokenType::KW_ASSERT)) return assert_statement();
     if (match(TokenType::KW_EXIT)) return exit_statement();
     if (check(TokenType::LBRACE)) return block_statement();
     if ((check(TokenType::TYPE_INT) || check(TokenType::TYPE_DOUBLE) ||
@@ -184,18 +260,15 @@ std::shared_ptr<Stmt> Parser::do_while_statement() {
 std::shared_ptr<Stmt> Parser::for_statement() {
     expect(TokenType::LPAREN, "'(' after for");
     std::shared_ptr<Decl> init = nullptr;
-    bool semicolon_checked = false;
     if (!check(TokenType::SEMICOLON)) {
         if (check(TokenType::TYPE_INT) || check(TokenType::TYPE_DOUBLE) ||
             check(TokenType::TYPE_CHAR) || check(TokenType::TYPE_BOOL) || check(TokenType::TYPE_VOID)) {
             init = var_decl();
-            semicolon_checked = true;
         } else {
             init = std::dynamic_pointer_cast<Decl>(expression());
+            expect(TokenType::SEMICOLON, "';' after for initializer");
         }
     }
-    if (!semicolon_checked)
-        expect(TokenType::SEMICOLON, "';' after for initializer");
     auto condition = check(TokenType::SEMICOLON) ? nullptr : expression();
     expect(TokenType::SEMICOLON, "';' after for condition");
     auto increment = check(TokenType::RPAREN) ? nullptr : expression();
@@ -234,34 +307,6 @@ std::shared_ptr<Stmt> Parser::conditional_statement() {
     return std::make_shared<IfStmt>(condition, then_branch, else_branch);
 }
 
-std::shared_ptr<Stmt> Parser::loop_statement() {
-    if (tokens[pos - 1].type == TokenType::KW_WHILE) {
-        expect(TokenType::LPAREN, "'(' after while");
-        auto condition = expression();
-        expect(TokenType::RPAREN, "')' after while condition");
-        auto body = statement();
-        return std::make_shared<WhileStmt>(condition, body);
-    } else if (tokens[pos - 1].type == TokenType::KW_FOR) {
-        expect(TokenType::LPAREN, "'(' after for");
-        std::shared_ptr<Decl> init = nullptr;
-        if (!check(TokenType::SEMICOLON)) init = var_decl();
-        else advance(); // empty init
-        auto condition = expression(); expect(TokenType::SEMICOLON, "';' after loop condition");
-        auto increment = expression(); expect(TokenType::RPAREN, "')' after loop increment");
-        auto body = statement();
-        return std::make_shared<ForStmt>(init, condition, increment, body);
-    } else if (tokens[pos - 1].type == TokenType::KW_DO) {
-        auto body = statement();
-        expect(TokenType::KW_WHILE, "while after do");
-        expect(TokenType::LPAREN, "'(' after while");
-        auto condition = expression();
-        expect(TokenType::RPAREN, "')' after condition");
-        expect(TokenType::SEMICOLON, "';' after do-while");
-        return std::make_shared<WhileStmt>(condition, body); // Исправлено: возвращаем WhileStmt
-    }
-    throw std::runtime_error("Unexpected token in loop statement: " + peek().value);
-}
-
 std::shared_ptr<Stmt> Parser::return_statement() {
     std::shared_ptr<Expr> value = nullptr;
     if (!check(TokenType::SEMICOLON)) value = expression();
@@ -277,7 +322,7 @@ std::shared_ptr<Stmt> Parser::io_statement() {
         expr = expression();
     } else {
         expect(TokenType::ID, "variable name for read()");
-        expr = std::make_shared<VariableExpr>(advance().value);
+        expr = std::make_shared<IdExpr>(advance().value);
     }
     expect(TokenType::RPAREN, "')' after IO");
     expect(TokenType::SEMICOLON, "';' after IO");
@@ -289,12 +334,19 @@ std::shared_ptr<Stmt> Parser::io_statement() {
     throw std::runtime_error("Unexpected token in IO statement: " + peek().value);
 }
 
-std::shared_ptr<Stmt> Parser::assert_statement() {
+std::shared_ptr<Decl> Parser::assert_decl() {
     expect(TokenType::LPAREN, "'(' after assert");
     auto expr = expression();
-    expect(TokenType::RPAREN, "')' after assert");
+    std::string message = "";
+    if (match(TokenType::COMMA)) {
+        if(!check(TokenType::STRING)) {
+            throw std::runtime_error("Expected string after ',' in assert statement");
+        }
+        auto message = advance().value;
+        }
+    expect(TokenType::RPAREN, "')' after assert");  // опц строка 
     expect(TokenType::SEMICOLON, "';' after assert");
-    return std::make_shared<AssertStmt>(expr);
+    return std::make_shared<AssertDecl>(expr, message);
 }
 
 std::shared_ptr<Stmt> Parser::exit_statement() {
@@ -305,8 +357,15 @@ std::shared_ptr<Stmt> Parser::exit_statement() {
     return std::make_shared<ExitStmt>(expr);
 }
 
-std::shared_ptr<Expr> Parser::expression() {
-    return assignment();
+std::shared_ptr<Expr> Parser::expression(bool allow_comma) {
+    auto expr = assignment();
+    if(allow_comma){
+        while (match(TokenType::COMMA)) {
+            auto right = assignment();
+            expr = std::make_shared<BinaryExpr>(",", expr, right);
+        }
+    }
+    return expr;
 }
 
 std::shared_ptr<Expr> Parser::assignment() {
@@ -398,8 +457,7 @@ std::shared_ptr<Expr> Parser::unary() {
 
 std::shared_ptr<Expr> Parser::postfix() {
     auto expr = primary();
-    while (check(TokenType::INC) || check(TokenType::DEC) || check(TokenType::LBRACKET) ||
-           check(TokenType::LPAREN) || check(TokenType::DOT)) {
+    while (true) {
         if (match(TokenType::INC) || match(TokenType::DEC)) {
             auto op = tokens[pos - 1].value;
             expr = std::make_shared<PostfixExpr>(expr, op);
@@ -419,24 +477,36 @@ std::shared_ptr<Expr> Parser::postfix() {
         } else if (match(TokenType::DOT)) {
             auto member = advance().value;
             expr = std::make_shared<MemberAccessExpr>(expr, member);
+        } else {
+            break;
         }
     }
     return expr;
 }
 
 std::shared_ptr<Expr> Parser::primary() {
-    if (match(TokenType::NUM_INT) || match(TokenType::NUM_FLOAT) ||
-        match(TokenType::STRING) || match(TokenType::CHAR) || match(TokenType::BOOL)) {
+    if (match(TokenType::NUM_INT)){
+        return std::make_shared<LiteralExpr>( std::stoi(tokens[pos - 1].value));
+    } else if (match(TokenType::NUM_DOUBLE)){
+        return std::make_shared<LiteralExpr>( std::stod(tokens[pos - 1].value));
+    } else if (match(TokenType::STRING)){
         return std::make_shared<LiteralExpr>(tokens[pos - 1].value);
-    }
-    if (match(TokenType::ID)) {
-        return std::make_shared<VariableExpr>(tokens[pos - 1].value);
-    }
-    if (match(TokenType::LPAREN)) {
+    } else if(match(TokenType::CHAR)){
+        return std::make_shared<LiteralExpr>(tokens[pos - 1].value[0]);
+    } else if(match(TokenType::BOOL)) {
+        if (tokens[pos - 1].value == "true") {
+            return std::make_shared<LiteralExpr>(true);
+        } else if (tokens[pos - 1].value == "false") {
+            return std::make_shared<LiteralExpr>(false);
+        }
+    } else if (match(TokenType::ID)) {
+        return std::make_shared<IdExpr>(tokens[pos - 1].value);
+    } else if (match(TokenType::LPAREN)) {
         auto expr = expression();
         expect(TokenType::RPAREN, "')' after expression");
         return expr;
     }
+
     throw std::runtime_error("Unexpected token in primary expression: " + peek().value);
 }
 

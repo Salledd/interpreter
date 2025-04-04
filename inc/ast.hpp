@@ -1,7 +1,28 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <set>
 #include <string>
+#include <variant>
+
+#include "token.hpp"
+
+enum class Modifier {
+    Const,
+    Static,
+};
+
+struct Modifiers {
+    std::set<Modifier> mods;
+
+    void add(Modifier mod) {
+        mods.insert(mod); // Вставка элемента
+    }
+
+    bool has(Modifier mod) const {
+        return mods.count(mod) != 0; // Проверка наличия элемента
+    }
+};
 
 struct ASTVisitor;
 
@@ -12,26 +33,35 @@ struct ASTNode {
 
 typedef std::shared_ptr<ASTNode> ASTNodePtr;
 
-struct Expr : ASTNode {};
+struct Expr : ASTNode {
+    virtual ~Expr() = default;
+    void accept(ASTVisitor& visitor) override = 0; // Метод для посещения выражения
+};
 typedef std::shared_ptr<Expr> ExprPtr;
 
-struct Stmt : ASTNode {};
+struct Stmt : ASTNode {
+    virtual ~Stmt() = default;
+    void accept(ASTVisitor& visitor) override = 0; // Метод для посещения инструкции
+};
 typedef std::shared_ptr<Stmt> StmtPtr;
 
-struct Decl : ASTNode {};
+struct Decl : ASTNode {
+    virtual ~Decl() = default;
+    void accept(ASTVisitor& visitor) override = 0; // Метод для посещения объявления
+};
 typedef std::shared_ptr<Decl> DeclPtr;
 
 // Литеральное выражение
 struct LiteralExpr : Expr {
-    std::string value;
-    explicit LiteralExpr(const std::string& val) : value(val) {}
+    std::variant<int, double, bool, char, std::string> value;
+    explicit LiteralExpr(std::variant<int, double, bool, char, std::string> val) : value(val) {}
     void accept(ASTVisitor& visitor) override;
 };
 
 // Выражение переменной
-struct VariableExpr : Expr {
+struct IdExpr : Expr {
     std::string name;
-    explicit VariableExpr(const std::string& n) : name(n) {}
+    explicit IdExpr(const std::string& n) : name(n) {}
     void accept(ASTVisitor& visitor) override;
 };
 
@@ -127,7 +157,7 @@ struct ArrayInitExpr : Expr {
 
 // Инструкция-выражение
 struct ExprStmt : Stmt {
-    ASTNodePtr expr;
+    ASTNodePtr expr; 
     explicit ExprStmt(ASTNodePtr e) : expr(std::move(e)) {}
     void accept(ASTVisitor& visitor) override;
 };
@@ -196,13 +226,6 @@ struct ReadStmt : Stmt {
     void accept(ASTVisitor& visitor) override;
 };
 
-// Инструкция assert
-struct AssertStmt : Stmt {
-    ExprPtr expr;
-    AssertStmt(ExprPtr e) : expr(std::move(e)) {}
-    void accept(ASTVisitor& visitor) override;
-};
-
 // Инструкция выхода
 struct ExitStmt : Stmt {
     ExprPtr expr;
@@ -210,52 +233,69 @@ struct ExitStmt : Stmt {
     void accept(ASTVisitor& visitor) override;
 };
 
+struct Variable {
+    std::string name;       
+    ExprPtr init;           
+    ExprPtr size;           
+
+    Variable(const std::string& name, ExprPtr init = nullptr, ExprPtr size = nullptr) :
+        name(name), init(std::move(init)), size(std::move(size)) {}
+};
+
 // Декларация переменной
 struct VarDecl : Decl {
     std::string type;
-    std::string name;
-    ExprPtr init;
-    bool constant; 
-    VarDecl(const std::string& t, const std::string& n, ExprPtr i = nullptr, bool const_flag = false) : type(t), name(n), init(std::move(i)), constant(const_flag) {}
+    std::vector<Variable> variables; // name, init, size
+    Modifiers modifiers;
+    VarDecl(const std::string& type, std::vector<Variable> variables, Modifiers mods) : 
+        type(type), variables(std::move(variables)), modifiers(mods) {}
+    void accept(ASTVisitor& visitor) override;
+};
+
+// Декларация typedef
+struct TypedefDecl : Decl {
+    std::string original_type;
+    std::string alias_name;
+
+    TypedefDecl(const std::string& original, const std::string& alias)
+        : original_type(original), alias_name(alias) {}
+
     void accept(ASTVisitor& visitor) override;
 };
 
 // Декларация структуры
 struct StructDecl : Decl {
     std::string name;
-    std::vector<VarDecl> fields;
+    std::vector<VarDecl> fields;    // мб Decl
     StructDecl(const std::string& n, const std::vector<VarDecl>& f) : name(n), fields(f) {}
     void accept(ASTVisitor& visitor) override;
 };
 
 // Декларация функции
 struct FunctionDecl : Decl {
-    std::string return_type;
+    std::string return_type;    // enum и строка
     std::string name;
-    std::vector<std::pair<std::string, std::string>> params;
+    std::vector<std::pair<std::string, std::string>> params;    // param_decl
     std::shared_ptr<BlockStmt> body;
-    FunctionDecl(const std::string& rt, const std::string& n, const std::vector<std::pair<std::string, std::string>>& p, std::shared_ptr<BlockStmt> b = nullptr) : return_type(rt), name(n), params(p), body(std::move(b)) {}
+    FunctionDecl(const std::string& rt, const std::string& n, const std::vector<std::pair<std::string, std::string>>& p, std::shared_ptr<BlockStmt> b = nullptr) : 
+        return_type(rt), name(n), params(p), body(std::move(b)) {}
     void accept(ASTVisitor& visitor) override;
 };
 
-// Глобальная переменная
-struct GlobalVarDecl : Decl {
-    VarDecl var;
-    explicit GlobalVarDecl(VarDecl v) : var(std::move(v)) {}
+// оператор assert
+struct AssertDecl : Decl {
+    ExprPtr expr;       
+    std::string message; 
+    AssertDecl(ExprPtr e, std::string m) : expr(std::move(e)), message(m) {}
     void accept(ASTVisitor& visitor) override;
 };
 
 // Узел корня AST
 struct TranslationUnitNode : ASTNode {
-    std::vector<ASTNodePtr> statements;
+    std::vector<ASTNodePtr> statements; //declptr
     TranslationUnitNode() = default;
     TranslationUnitNode(std::vector<ASTNodePtr> st) : statements(std::move(st)) {}
     void accept(ASTVisitor& visitor) override;
 };
 
-// Узел для функции main
-struct MainFunctionNode : ASTNode {
-    std::shared_ptr<BlockStmt> body;
-    MainFunctionNode(std::shared_ptr<BlockStmt> b) : body(std::move(b)) {}
-    void accept(ASTVisitor& visitor) override;
-};
+

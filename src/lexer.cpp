@@ -43,20 +43,20 @@ Token Lexer::extract_number() {
         value = "0";    // .1  ->  0.1 
         value += input[index++];
         while (std::isdigit(input[index])) value += input[index++];
-        return {TokenType::NUM_FLOAT , value};
+        return {TokenType::NUM_DOUBLE , value};
     } else {
         // Число начинается с цифры 
         while (std::isdigit(input[index])) value += input[index++];
         if (input[index] == '.') {
             value += input[index++];
             while (std::isdigit(input[index])) value += input[index++];
-            return {TokenType::NUM_FLOAT , value};
+            return {TokenType::NUM_DOUBLE , value};
         }
     }
     // Если число заканчивается на .
     if (value.back() == '.') {
         value += "0";  // 1. ->  1.0
-        return {TokenType::NUM_FLOAT , value};
+        return {TokenType::NUM_DOUBLE , value};
     }
 
     return {TokenType::NUM_INT, value};
@@ -70,8 +70,8 @@ Token Lexer::extract_identifier() {
     if (auto it = keywords.find(name); it != keywords.end()) {
         return {it->second, name};
     }
-    if(name == "True") return {TokenType::BOOL, name};
-    if(name == "False") return {TokenType::BOOL, name};
+    if(name == "true") return {TokenType::BOOL, name};
+    if(name == "false") return {TokenType::BOOL, name};
     return {TokenType::ID, name};
 }
 
@@ -164,6 +164,7 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"True", TokenType::BOOL}, {"False", TokenType::BOOL},
 
     {"struct", TokenType::KW_STRUCT},
+    {"typedef", TokenType::KW_TYPEDEF}, // Добавлено ключевое слово typedef
     {"if", TokenType::KW_IF}, {"else", TokenType::KW_ELSE}, {"while", TokenType::KW_WHILE}, 
     {"for", TokenType::KW_FOR}, {"return", TokenType::KW_RETURN}, {"break", TokenType::KW_BREAK}, 
     {"continue", TokenType::KW_CONTINUE},

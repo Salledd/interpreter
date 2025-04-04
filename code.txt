@@ -1,3 +1,10 @@
+typedef double dbl;
+
+typedef struct my_struct{
+    int a;
+    double b;
+} my_st;
+
 struct A {
     int num;
     bool flag;
@@ -12,21 +19,16 @@ void f(int x){
 }
 
 int main() {
-    int x = 20;
-    
-    double arr[3] {1, 2 , 3};
-    int arr[3] = {1, 2, 3};
+    double arr[3] {1, 2, 3};
+    int x = 20, arr2[3] = {4, 4, 4};
+
     arr[i+1] = 10;
 
-    A a;
-    a.num = 10;
-    a.flag = true;
-
-    f(a.num);
-
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0, j = 10; j > 5; i++, j--) {
         print(i);
     }
+    A a = {12, true};
+    f(a.num);
 
     while (x > 0) {
         x = x - 1;

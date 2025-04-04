@@ -6,6 +6,7 @@ CMakeFiles/main.dir/src/lexer.cpp.obj: \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\mingw32\bits\c++config.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\mingw32\bits\os_defines.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\mingw32\bits\cpu_defines.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\pstl\pstl_config.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stringfwd.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\memoryfwd.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\char_traits.h \
@@ -31,15 +32,11 @@ CMakeFiles/main.dir/src/lexer.cpp.obj: \
  c:\mingw\include\wchar.h c:\mingw\include\_mingw.h \
  c:\mingw\include\msvcrtver.h c:\mingw\include\w32api.h \
  c:\mingw\include\sdkddkver.h c:\mingw\include\features.h \
- c:\mingw\include\wctype.h \
- c:\mingw\lib\gcc\mingw32\9.2.0\include\stddef.h \
- c:\mingw\include\sys\types.h c:\mingw\include\stdio.h \
+ c:\mingw\include\stdio.h c:\mingw\lib\gcc\mingw32\9.2.0\include\stddef.h \
  c:\mingw\include\sys/types.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\stdarg.h \
- c:\mingw\include\stdlib.h c:\mingw\include\direct.h \
- c:\mingw\include\sys/stat.h c:\mingw\include\conio.h \
- c:\mingw\include\io.h c:\mingw\include\stdint.h c:\mingw\include\time.h \
- c:\mingw\include\locale.h c:\mingw\include\process.h \
+ c:\mingw\include\stdlib.h c:\mingw\include\time.h \
+ c:\mingw\include\sys\types.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\cstdint \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\stdint.h \
  c:\mingw\include\stdint.h \
@@ -75,19 +72,23 @@ CMakeFiles/main.dir/src/lexer.cpp.obj: \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\mingw32\bits\atomic_word.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\ext\alloc_traits.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\alloc_traits.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\string_view \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\limits \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\functional_hash.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\string_view.tcc \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\ext\string_conversions.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\cstdlib \
  c:\mingw\include\stdlib.h c:\mingw\include\errno.h \
- c:\mingw\include\alloca.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\std_abs.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\cstdio \
  c:\mingw\include\stdio.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\cerrno \
- c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\functional_hash.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\basic_string.tcc \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\vector \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_construct.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_uninitialized.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\utility \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_relops.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_vector.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_bvector.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\vector.tcc \
@@ -96,12 +97,12 @@ CMakeFiles/main.dir/src/lexer.cpp.obj: \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\hashtable.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\hashtable_policy.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\tuple \
- c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\utility \
- c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\stl_relops.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\array \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\stdexcept \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\uses_allocator.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\invoke.h \
- c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\limits \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\node_handle.h \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\optional \
+ c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\enable_special_members.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\unordered_map.h \
  c:\mingw\lib\gcc\mingw32\9.2.0\include\c++\bits\erase_if.h
