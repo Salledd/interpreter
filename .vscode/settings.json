@@ -62,7 +62,8 @@
         "fstream": "cpp",
         "sstream": "cpp",
         "variant": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "optional": "cpp"
     },
     "C_Cpp.default.cppStandard": "c++20"
 }

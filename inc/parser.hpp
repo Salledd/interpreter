@@ -21,6 +21,8 @@ private:
     Token advance();
     bool match(TokenType type);
     bool check(TokenType type) const;
+    bool token_is_type() const;
+    bool token_is_modifier() const;
     void expect(TokenType type, const std::string& error_msg);
 
     // грамматические правила

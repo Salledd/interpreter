@@ -3,7 +3,7 @@
 #include <sstream>
 #include "lexer.hpp"
 #include "parser.hpp"
-#include "visitor.hpp"
+#include "vis_print.hpp"
 
 std::string readFile(const std::string& filename) {
     std::ifstream file(filename);

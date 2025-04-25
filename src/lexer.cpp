@@ -158,8 +158,12 @@ void Lexer::extract_comment() {
 }
 
 const std::unordered_map<std::string, TokenType> Lexer::keywords = {
-    {"int", TokenType::TYPE_INT}, {"double", TokenType::TYPE_DOUBLE}, 
+    {"short", TokenType::TYPE_SHORT}, {"int", TokenType::TYPE_INT}, {"long", TokenType::TYPE_LONG},
     {"char", TokenType::TYPE_CHAR}, {"bool", TokenType::TYPE_BOOL}, {"void", TokenType::TYPE_VOID},
+    {"ldouble", TokenType::TYPE_LONG_DOUBLE}, {"double", TokenType::TYPE_DOUBLE}, {"float", TokenType::TYPE_FLOAT},
+
+    {"const", TokenType::KW_CONST}, {"static", TokenType::KW_STATIC}, 
+    {"unsigned", TokenType::KW_UNSIGNED},
 
     {"True", TokenType::BOOL}, {"False", TokenType::BOOL},
 
@@ -169,8 +173,8 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"for", TokenType::KW_FOR}, {"return", TokenType::KW_RETURN}, {"break", TokenType::KW_BREAK}, 
     {"continue", TokenType::KW_CONTINUE},
 
-    {"sizeof", TokenType::KW_SIZEOF}, {"read", TokenType::KW_READ}, {"print", TokenType::KW_PRINT},
-    {"const", TokenType::KW_CONST}, {"assert", TokenType::KW_ASSERT}, 
+    {"sizeof", TokenType::KW_SIZEOF}, 
+    {"read", TokenType::KW_READ}, {"print", TokenType::KW_PRINT},
     {"assert", TokenType::KW_ASSERT}, {"exit", TokenType::KW_EXIT},
 
 };

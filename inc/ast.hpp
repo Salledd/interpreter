@@ -6,10 +6,16 @@
 #include <variant>
 
 #include "token.hpp"
+#include "types.hpp"
+
+struct ASTVisitor;
 
 enum class Modifier {
     Const,
     Static,
+    Unsigned,
+    Short,
+    Long,
 };
 
 struct Modifiers {
@@ -23,8 +29,6 @@ struct Modifiers {
         return mods.count(mod) != 0; // Проверка наличия элемента
     }
 };
-
-struct ASTVisitor;
 
 struct ASTNode {
     virtual ~ASTNode() = default;
@@ -53,8 +57,8 @@ typedef std::shared_ptr<Decl> DeclPtr;
 
 // Литеральное выражение
 struct LiteralExpr : Expr {
-    std::variant<int, double, bool, char, std::string> value;
-    explicit LiteralExpr(std::variant<int, double, bool, char, std::string> val) : value(val) {}
+    std::variant<int, float, double, bool, char, std::string> value;
+    explicit LiteralExpr(std::variant<int, float, double, bool, char, std::string> val) : value(val) {}
     void accept(ASTVisitor& visitor) override;
 };
 
@@ -79,6 +83,16 @@ struct UnaryExpr : Expr {
     std::string op;
     ExprPtr operand;
     UnaryExpr(const std::string& op, ExprPtr operand) : op(op), operand(std::move(operand)) {}
+    void accept(ASTVisitor& visitor) override;
+
+    ~UnaryExpr() = default;
+};
+
+typedef std::shared_ptr<Type> TypePtr;
+
+struct SizeofExpr : UnaryExpr {
+    TypePtr type;
+    SizeofExpr(ExprPtr operand, TypePtr type) : UnaryExpr("sizeof", operand), type(type) {}
     void accept(ASTVisitor& visitor) override;
 };
 
@@ -237,17 +251,18 @@ struct Variable {
     std::string name;       
     ExprPtr init;           
     ExprPtr size;           
+    bool is_array;
 
-    Variable(const std::string& name, ExprPtr init = nullptr, ExprPtr size = nullptr) :
-        name(name), init(std::move(init)), size(std::move(size)) {}
+    Variable(const std::string& name, ExprPtr init = nullptr, ExprPtr size = nullptr, bool is_array = false) :
+        name(name), init(std::move(init)), size(std::move(size)), is_array(is_array) {}
 };
 
 // Декларация переменной
 struct VarDecl : Decl {
-    std::string type;
+    TypePtr type;
     std::vector<Variable> variables; // name, init, size
     Modifiers modifiers;
-    VarDecl(const std::string& type, std::vector<Variable> variables, Modifiers mods) : 
+    VarDecl(const TypePtr type, std::vector<Variable> variables, Modifiers mods) : 
         type(type), variables(std::move(variables)), modifiers(mods) {}
     void accept(ASTVisitor& visitor) override;
 };

@@ -28,7 +28,7 @@ include_directories(${INC_DIR})
 target_compile_options(main PRIVATE -g)
 
 # Команда для запуска
-add_custom_target(run COMMAND ${BIN_DIR}/main DEPENDS main)
+add_custom_target(run COMMAND ${BIN_DIR}/Debug/main DEPENDS main)
 
 # Команда для отладки
 add_custom_target(debug COMMAND gdb ${BIN_DIR}/main DEPENDS main)

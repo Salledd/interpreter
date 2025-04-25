@@ -1,5 +1,5 @@
 C:/MGU/Proga/GitHub/interpreter/build/CMakeFiles/main.dir
 C:/MGU/Proga/GitHub/interpreter/build/CMakeFiles/run.dir
 C:/MGU/Proga/GitHub/interpreter/build/CMakeFiles/debug.dir
-C:/MGU/Proga/GitHub/interpreter/build/CMakeFiles/edit_cache.dir
-C:/MGU/Proga/GitHub/interpreter/build/CMakeFiles/rebuild_cache.dir
+C:/MGU/Proga/GitHub/interpreter/build/CMakeFiles/ALL_BUILD.dir
+C:/MGU/Proga/GitHub/interpreter/build/CMakeFiles/ZERO_CHECK.dir

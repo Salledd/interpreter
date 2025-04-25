@@ -3,9 +3,12 @@
 #include <unordered_map>
 #include "parser.hpp"
 #include "ast.hpp"
+#include "types.hpp"
 
 const std::unordered_map<TokenType, Modifier> token_to_modifier = {
     {TokenType::KW_CONST, Modifier::Const},
+    {TokenType::KW_STATIC, Modifier::Static},
+    {TokenType::KW_UNSIGNED, Modifier::Unsigned},
 };
 
 Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
@@ -15,6 +18,16 @@ Token Parser::peek() const { return tokens[pos]; }
 Token Parser::advance() { return pos < tokens.size() ? tokens[pos++] : tokens.back(); }
 
 bool Parser::check(TokenType type) const { return pos < tokens.size() && tokens[pos].type == type; }
+
+bool Parser::token_is_type() const {
+    return check(TokenType::TYPE_SHORT) || check(TokenType::TYPE_INT) || check(TokenType::TYPE_LONG) ||
+           check(TokenType::TYPE_DOUBLE) || check(TokenType::TYPE_LONG_DOUBLE) || check(TokenType::TYPE_FLOAT) ||
+           check(TokenType::TYPE_CHAR) || check(TokenType::TYPE_BOOL) || check(TokenType::TYPE_VOID);
+}
+
+bool Parser::token_is_modifier() const {
+    return check(TokenType::KW_CONST) || check(TokenType::KW_STATIC) || check(TokenType::KW_UNSIGNED);
+}
 
 bool Parser::match(TokenType type) {
     if (check(type)) {
@@ -49,9 +62,7 @@ std::shared_ptr<Decl> Parser::declaration() {
         return struct_decl();
     } else if (match(TokenType::KW_TYPEDEF)) {
         return typedef_decl();
-    } else if (check(TokenType::TYPE_INT) || check(TokenType::TYPE_DOUBLE) ||
-               check(TokenType::TYPE_CHAR) || check(TokenType::TYPE_BOOL) || check(TokenType::TYPE_VOID) ||
-               check(TokenType::ID)) {
+    } else if (token_is_type() || check(TokenType::ID)) {
         if (tokens[pos + 2].type == TokenType::LPAREN) {
             return func_decl();
         } else {
@@ -132,8 +143,10 @@ Modifiers Parser::parse_modifiers() {
 std::shared_ptr<Decl> Parser::var_decl() {
     if(match(TokenType::SEMICOLON)) return nullptr; // пустая декларация
     Modifiers modifiers = parse_modifiers();
-
-    auto type = advance().value; // пропуск type
+    if (check(TokenType::TYPE_VOID)) {
+        std::cout << "Error: 'void' type cannot be used for variable declaration" << std::endl;
+    }
+    auto type = make_type(advance().value); // пропуск type
 
     std::vector<Variable> variables;
 
@@ -141,8 +154,10 @@ std::shared_ptr<Decl> Parser::var_decl() {
         auto name = advance().value;
         ExprPtr size = nullptr;
         ExprPtr init = nullptr;
+        bool is_array = false;
 
         if (match(TokenType::LBRACKET)) { // Обработка массива
+            is_array = true;
             if (!check(TokenType::RBRACKET)) {
                 size = expression(false); // Обработка size
             }
@@ -155,7 +170,7 @@ std::shared_ptr<Decl> Parser::var_decl() {
                 init = expression(false);
             }
         }
-        variables.emplace_back(name, init, size); // ф-ция создает объект сразу в списке
+        variables.emplace_back(name, init, size, is_array); // ф-ция создает объект сразу в списке
     } while (match(TokenType::COMMA));
 
     expect(TokenType::SEMICOLON, "';' after variable declaration");
@@ -231,9 +246,7 @@ std::shared_ptr<Stmt> Parser::statement() {
     if (match(TokenType::KW_PRINT) || match(TokenType::KW_READ)) return io_statement();
     if (match(TokenType::KW_EXIT)) return exit_statement();
     if (check(TokenType::LBRACE)) return block_statement();
-    if ((check(TokenType::TYPE_INT) || check(TokenType::TYPE_DOUBLE) ||
-        check(TokenType::TYPE_CHAR) || check(TokenType::TYPE_BOOL) || check(TokenType::TYPE_VOID) ||
-        check(TokenType::ID)) && tokens[pos + 1].type == TokenType::ID) {
+    if ((token_is_type() || check(TokenType::ID)) && tokens[pos + 1].type == TokenType::ID) {
         return std::make_shared<ExprStmt>(var_decl());
     }
     return expr_statement();
@@ -261,8 +274,7 @@ std::shared_ptr<Stmt> Parser::for_statement() {
     expect(TokenType::LPAREN, "'(' after for");
     std::shared_ptr<Decl> init = nullptr;
     if (!check(TokenType::SEMICOLON)) {
-        if (check(TokenType::TYPE_INT) || check(TokenType::TYPE_DOUBLE) ||
-            check(TokenType::TYPE_CHAR) || check(TokenType::TYPE_BOOL) || check(TokenType::TYPE_VOID)) {
+        if (token_is_type() || check(TokenType::ID) || token_is_modifier()) {
             init = var_decl();
         } else {
             init = std::dynamic_pointer_cast<Decl>(expression());
@@ -451,6 +463,16 @@ std::shared_ptr<Expr> Parser::unary() {
         auto op = tokens[pos - 1].value;
         auto operand = unary();
         return std::make_shared<UnaryExpr>(op, operand);
+    }else if(match(TokenType::KW_SIZEOF)){
+        if(match(TokenType::LPAREN)){
+            auto type = make_type(advance().value);
+            expect(TokenType::RPAREN, "')' after sizeof type");
+            return std::make_shared<SizeofExpr>(nullptr, type);
+        }else{
+            auto operand = expression();
+            return std::make_shared<SizeofExpr>(operand, nullptr);
+        }
+
     }
     return postfix();
 }

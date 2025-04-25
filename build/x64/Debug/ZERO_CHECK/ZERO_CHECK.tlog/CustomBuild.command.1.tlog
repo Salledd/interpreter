@@ -1,0 +1,10 @@
+^C:\MGU\PROGA\GITHUB\INTERPRETER\BUILD\CMAKEFILES\2A58C29EA055177D665E0191E4A821A8\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/MGU/Proga/GitHub/interpreter -BC:/MGU/Proga/GitHub/interpreter/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/MGU/Proga/GitHub/interpreter/build/MyProject.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

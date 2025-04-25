@@ -1,13 +1,13 @@
 typedef double dbl;
 
 typedef struct my_struct{
-    int a;
+    short a;
     double b;
 } my_st;
 
 struct A {
-    int num;
-    bool flag;
+    long num;
+    const bool flag = true;
 };
 
 void f(int x){
@@ -24,10 +24,11 @@ int main() {
 
     arr[i+1] = 10;
 
-    for (int i = 0, j = 10; j > 5; i++, j--) {
+    for (unsigned int i = 0, j = 10; j > 5; i++, j--) {
         print(i);
     }
     A a = {12, true};
+    ptint(sizeof a);
     f(a.num);
 
     while (x > 0) {
