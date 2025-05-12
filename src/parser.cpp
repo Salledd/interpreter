@@ -53,7 +53,7 @@ std::shared_ptr<ASTNode> Parser::getAST() const {
 
 void Parser::translation_unit() {
     while (!check(TokenType::END)) {
-        root->statements.push_back(declaration());
+        root->decls.push_back(declaration());
     }
 }
 
@@ -62,8 +62,8 @@ std::shared_ptr<Decl> Parser::declaration() {
         return struct_decl();
     } else if (match(TokenType::KW_TYPEDEF)) {
         return typedef_decl();
-    } else if (token_is_type() || check(TokenType::ID)) {
-        if (tokens[pos + 2].type == TokenType::LPAREN) {
+    } else if (token_is_type() || token_is_modifier() || check(TokenType::ID)) {
+        if (tokens[pos + 2].type == TokenType::LPAREN) { // заменить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
             return func_decl();
         } else {
             return var_decl();
@@ -74,54 +74,19 @@ std::shared_ptr<Decl> Parser::declaration() {
 }
 
 std::shared_ptr<Decl> Parser::typedef_decl() {
-    if (check(TokenType::KW_STRUCT)) {
-        // Сохраняем текущую позицию
-        size_t start_pos = pos;
-
-        // Пропускаем ключевое слово `struct`
-        advance();
-
-        // Пропускаем имя структуры (если есть)
-        std::string struct_name = "";
-        if (check(TokenType::ID)) {
-            struct_name = " " + advance().value;
-        }
-
-        // Пропускаем тело структуры
-        if (check(TokenType::LBRACE)) {
-            int brace_count = 1;
-            advance();
-            while (brace_count > 0 && pos < tokens.size()) {
-                if (match(TokenType::LBRACE)) {
-                    brace_count++;
-                } else if (match(TokenType::RBRACE)) {
-                    brace_count--;
-                } else {
-                    advance();
-                }
-            }
-        }
-
-        // Проверяем наличие псевдонима
-        if (!check(TokenType::ID)) {
-            expect(TokenType::ID, "Expected alias name after typedef struct");
-        }
-        auto alias_name = advance().value;
-
-        expect(TokenType::SEMICOLON, "';' after typedef struct declaration");
-
-        // Возвращаем позицию на `struct` для обработки структуры
-        pos = start_pos;
-        
-        return std::make_shared<TypedefDecl>("struct" + struct_name, alias_name);
-    } else {
-        // Обычный typedef
-        auto original_type = advance().value; // Пропускаем исходный тип
-        auto alias_name = advance().value;   // Пропускаем имя псевдонима
-        expect(TokenType::SEMICOLON, "';' after typedef declaration");
-
-        return std::make_shared<TypedefDecl>(original_type, alias_name);
+    auto mods = parse_modifiers();          // Пропускаем модификаторы
+    if (!(token_is_type() || check(TokenType::ID))) {
+        std::cout << "Error: type or id expected after typedef" << std::endl;
     }
+    auto original_type = advance().value;   // Пропускаем исходный тип
+    if (!check(TokenType::ID)) {
+        std::cout << "Error: alias(id) expected after typedef" << std::endl;
+    }
+    auto alias_name = advance().value;      // Пропускаем имя псевдонима
+
+    expect(TokenType::SEMICOLON, "';' after typedef declaration");
+
+    return std::make_shared<TypedefDecl>(mods, make_type(original_type, mods.has(Modifier::Const)), alias_name);
 }
 
 Modifiers Parser::parse_modifiers() {
@@ -142,11 +107,13 @@ Modifiers Parser::parse_modifiers() {
 
 std::shared_ptr<Decl> Parser::var_decl() {
     if(match(TokenType::SEMICOLON)) return nullptr; // пустая декларация
+
     Modifiers modifiers = parse_modifiers();
+
     if (check(TokenType::TYPE_VOID)) {
         std::cout << "Error: 'void' type cannot be used for variable declaration" << std::endl;
     }
-    auto type = make_type(advance().value); // пропуск type
+    auto type = make_type(advance().value, modifiers.has(Modifier::Const)); // пропуск type
 
     std::vector<Variable> variables;
 
@@ -205,24 +172,26 @@ std::shared_ptr<Decl> Parser::struct_decl() {
 }
 
 std::shared_ptr<FunctionDecl> Parser::func_decl() {
-    auto return_type = advance().value; // пропуск return type
+    auto return_mods = parse_modifiers();
+    auto return_type = make_type(advance().value, return_mods.has(Modifier::Const)); // пропуск return type
     auto name = advance().value; // пропуск function name
     expect(TokenType::LPAREN, "'(' after function name");
 
-    std::vector<std::pair<std::string, std::string>> params;
+    std::vector<std::pair<std::pair<Modifiers, TypePtr>, std::string>> params;
     while (!check(TokenType::RPAREN)) {
-        auto param_type = advance().value; // param type
+        auto param_mods = parse_modifiers();
+        auto param_type = make_type(advance().value, param_mods.has(Modifier::Const)); // param type
         auto param_name = advance().value; // param name
-        params.emplace_back(param_type, param_name);
+        params.emplace_back(std::make_pair(param_mods, param_type), param_name);
         if (!check(TokenType::RPAREN)) expect(TokenType::COMMA, "',' between parameters");
     }
     expect(TokenType::RPAREN, "')' after parameters");
 
     if (match(TokenType::SEMICOLON)) {
-        return std::make_shared<FunctionDecl>(return_type, name, params, nullptr);
+        return std::make_shared<FunctionDecl>(return_mods, return_type, name, params, nullptr);
     }
     auto body = std::dynamic_pointer_cast<BlockStmt>(block_statement());
-    return std::make_shared<FunctionDecl>(return_type, name, params, body);
+    return std::make_shared<FunctionDecl>(return_mods, return_type, name, params, body);
 }
 
 std::shared_ptr<Stmt> Parser::block_statement() {
@@ -330,8 +299,12 @@ std::shared_ptr<Stmt> Parser::io_statement() {
     auto type = tokens[pos - 1].type;
     expect(TokenType::LPAREN, "'(' after IO");
     ExprPtr expr = nullptr; 
+    std::vector<ExprPtr> args;
     if (type == TokenType::KW_PRINT) {
-        expr = expression();
+        do {
+            args.push_back(expression(false));
+
+        } while (match(TokenType::COMMA));
     } else {
         expect(TokenType::ID, "variable name for read()");
         expr = std::make_shared<IdExpr>(advance().value);
@@ -339,7 +312,7 @@ std::shared_ptr<Stmt> Parser::io_statement() {
     expect(TokenType::RPAREN, "')' after IO");
     expect(TokenType::SEMICOLON, "';' after IO");
     if (type == TokenType::KW_PRINT) {
-        return std::make_shared<PrintStmt>(expr);
+        return std::make_shared<PrintStmt>(args);
     } else if(type == TokenType::KW_READ){
         return std::make_shared<ReadStmt>(expr);
     }
@@ -382,9 +355,11 @@ std::shared_ptr<Expr> Parser::expression(bool allow_comma) {
 
 std::shared_ptr<Expr> Parser::assignment() {
     auto expr = ternary_expression();
-    if (match(TokenType::ASSIGN)) {
+    if (match(TokenType::ASSIGN) || match(TokenType::PLUS_ASSIGN) || match(TokenType::MINUS_ASSIGN) ||
+    match(TokenType::MULT_ASSIGN) || match(TokenType::DIV_ASSIGN) || match(TokenType::MOD_ASSIGN)) {
+        auto op = tokens[pos - 1].value;
         auto value = assignment(); // правоассоциативность
-        return std::make_shared<AssignExpr>(expr, value);
+        return std::make_shared<AssignExpr>(op, expr, value);
     }
     return expr;
 }
@@ -404,7 +379,7 @@ std::shared_ptr<Expr> Parser::logical_or() {
     auto expr = logical_and();
     while (match(TokenType::OR)) {
         auto right = logical_and();
-        expr = std::make_shared<LogicalExpr>(expr, right, "||");
+        expr = std::make_shared<LogicalExpr>(tokens[pos - 1].value, expr, right);
     }
     return expr;
 }
@@ -413,7 +388,7 @@ std::shared_ptr<Expr> Parser::logical_and() {
     auto expr = equality();
     while (match(TokenType::AND)) {
         auto right = equality();
-        expr = std::make_shared<LogicalExpr>(expr, right, "&&");
+        expr = std::make_shared<LogicalExpr>(tokens[pos - 1].value, expr, right);
     }
     return expr;
 }
@@ -465,7 +440,12 @@ std::shared_ptr<Expr> Parser::unary() {
         return std::make_shared<UnaryExpr>(op, operand);
     }else if(match(TokenType::KW_SIZEOF)){
         if(match(TokenType::LPAREN)){
-            auto type = make_type(advance().value);
+            std::variant<TypePtr, ExprPtr> type;
+            if(token_is_type()){
+                type = make_type(advance().value);
+            }else if(check(TokenType::ID)){
+                type = std::make_shared<IdExpr>(advance().value);
+            }
             expect(TokenType::RPAREN, "')' after sizeof type");
             return std::make_shared<SizeofExpr>(nullptr, type);
         }else{
@@ -487,7 +467,7 @@ std::shared_ptr<Expr> Parser::postfix() {
             auto index = expression();
             expect(TokenType::RBRACKET, "']' after array index");
             expr = std::make_shared<ArrayAccessExpr>(expr, index);
-        } else if (match(TokenType::LPAREN)) {
+        } else if (tokens[pos-1].type == TokenType::ID && match(TokenType::LPAREN)) {
             std::vector<ExprPtr> args;
             if (!check(TokenType::RPAREN)) {
                 do {
@@ -497,7 +477,10 @@ std::shared_ptr<Expr> Parser::postfix() {
             expect(TokenType::RPAREN, "')' after function arguments");
             expr = std::make_shared<CallExpr>(expr, args);
         } else if (match(TokenType::DOT)) {
-            auto member = advance().value;
+            auto member = expression();
+            if(!std::dynamic_pointer_cast<IdExpr>(member)) {
+                throw std::runtime_error("Expected member name after '.' in member access");
+            }
             expr = std::make_shared<MemberAccessExpr>(expr, member);
         } else {
             break;

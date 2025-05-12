@@ -19,16 +19,44 @@ class Scope {
         _symbol_table.declare(name, info);
     }
 
-    std::optional<SymbolInfo> lookup(const std::string& name) const {
-        return _symbol_table.lookup(name);
+    void declare(const std::string& name, const FunctionInfo& info) {
+        _symbol_table.declare(name, info);
     }
 
-    std::optional<SymbolInfo> exists(const std::string& name) const {
-        if (auto info = _symbol_table.lookup(name)) {
+    void declare(const std::string& name, const TypedefInfo& info) {
+        _symbol_table.declare(name, info);
+    }
+
+    std::optional<SymbolInfo> lookup_var(const std::string& name) const {
+        return _symbol_table.lookup_var(name);
+    }
+
+    std::optional<SymbolInfo> exists_var(const std::string& name) const {
+        if (auto info = _symbol_table.lookup_var(name)) {
             return info;
         }
         // Если не найдено, ищем в родительской области
-        return _parent ? _parent->exists(name) : std::nullopt;
+        return _parent ? _parent->exists_var(name) : std::nullopt;
+    }
+
+    std::optional<FunctionInfo> lookup_func(const std::string& name) const {
+        return _symbol_table.lookup_func(name);
+    }
+    
+    std::optional<FunctionInfo> exists_func(const std::string& name) const {
+        if (auto info = _symbol_table.lookup_func(name)) {
+            return info;
+        }
+        // Если не найдено, ищем в родительской области
+        return _parent ? _parent->exists_func(name) : std::nullopt;
+    }
+
+    std::optional<TypedefInfo> exists_type(const std::string& name) const {
+        if (auto info = _symbol_table.lookup_typedef(name)) {
+            return info;
+        }
+        // Если не найдено, ищем в родительской области
+        return _parent ? _parent->exists_type(name) : std::nullopt;
     }
 
     private:

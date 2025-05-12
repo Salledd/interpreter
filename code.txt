@@ -1,9 +1,11 @@
 typedef double dbl;
 
-typedef struct my_struct{
+struct my_struct{
     short a;
     double b;
-} my_st;
+};
+
+typedef my_struct my_st;
 
 struct A {
     long num;

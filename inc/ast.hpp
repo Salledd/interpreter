@@ -7,28 +7,10 @@
 
 #include "token.hpp"
 #include "types.hpp"
+#include "modifiers.hpp"
 
 struct ASTVisitor;
 
-enum class Modifier {
-    Const,
-    Static,
-    Unsigned,
-    Short,
-    Long,
-};
-
-struct Modifiers {
-    std::set<Modifier> mods;
-
-    void add(Modifier mod) {
-        mods.insert(mod); // Вставка элемента
-    }
-
-    bool has(Modifier mod) const {
-        return mods.count(mod) != 0; // Проверка наличия элемента
-    }
-};
 
 struct ASTNode {
     virtual ~ASTNode() = default;
@@ -57,8 +39,8 @@ typedef std::shared_ptr<Decl> DeclPtr;
 
 // Литеральное выражение
 struct LiteralExpr : Expr {
-    std::variant<int, float, double, bool, char, std::string> value;
-    explicit LiteralExpr(std::variant<int, float, double, bool, char, std::string> val) : value(val) {}
+    std::variant<bool, char, short, int, long, float, double, long double, std::string> value;
+    explicit LiteralExpr(std::variant<bool, char, short, int, long, float, double, long double, std::string> val) : value(val) {}
     void accept(ASTVisitor& visitor) override;
 };
 
@@ -66,15 +48,6 @@ struct LiteralExpr : Expr {
 struct IdExpr : Expr {
     std::string name;
     explicit IdExpr(const std::string& n) : name(n) {}
-    void accept(ASTVisitor& visitor) override;
-};
-
-// Бинарное выражение
-struct BinaryExpr : Expr {
-    std::string op;
-    ExprPtr left;
-    ExprPtr right;
-    BinaryExpr(const std::string& o, ExprPtr l, ExprPtr r) : op(o), left(std::move(l)), right(std::move(r)) {}
     void accept(ASTVisitor& visitor) override;
 };
 
@@ -88,36 +61,39 @@ struct UnaryExpr : Expr {
     ~UnaryExpr() = default;
 };
 
-typedef std::shared_ptr<Type> TypePtr;
 
-struct SizeofExpr : UnaryExpr {
-    TypePtr type;
-    SizeofExpr(ExprPtr operand, TypePtr type) : UnaryExpr("sizeof", operand), type(type) {}
+// Постфиксное выражение
+struct PostfixExpr : UnaryExpr {
+    PostfixExpr(ExprPtr e, const std::string& o) : UnaryExpr(op, operand) {}
+    void accept(ASTVisitor& visitor) override;
+};
+
+// Бинарное выражение
+struct BinaryExpr : Expr {
+    std::string op;
+    ExprPtr left;
+    ExprPtr right;
+    BinaryExpr(const std::string& o, ExprPtr l, ExprPtr r) : op(o), left(std::move(l)), right(std::move(r)) {}
     void accept(ASTVisitor& visitor) override;
 };
 
 // Выражение присваивания
-struct AssignExpr : Expr {
-    ExprPtr left;
-    ExprPtr right;
-    AssignExpr(ExprPtr l, ExprPtr r) : left(std::move(l)), right(std::move(r)) {}
+struct AssignExpr : BinaryExpr {
+    AssignExpr(const std::string& o, ExprPtr l, ExprPtr r) : BinaryExpr(o , l, r) {}
     void accept(ASTVisitor& visitor) override;
 };
 
 // Логическое выражение
-struct LogicalExpr : Expr {
-    std::string op;
-    ExprPtr left;
-    ExprPtr right;
-    LogicalExpr(ExprPtr l, ExprPtr r, const std::string& o) : left(std::move(l)), right(std::move(r)), op(o) {}
+struct LogicalExpr : BinaryExpr {
+    LogicalExpr(const std::string& o, ExprPtr l, ExprPtr r) : BinaryExpr(o, l, r) {}
     void accept(ASTVisitor& visitor) override;
 };
 
-// Постфиксное выражение
-struct PostfixExpr : Expr {
-    std::string op;
-    ExprPtr operand;
-    PostfixExpr(ExprPtr e, const std::string& o) : operand(std::move(e)), op(o) {}
+typedef std::shared_ptr<Type> TypePtr;
+
+struct SizeofExpr : UnaryExpr {
+    std::variant<TypePtr, ExprPtr> type;
+    SizeofExpr(ExprPtr operand, std::variant<TypePtr, ExprPtr> type) : UnaryExpr("sizeof", operand), type(type) {}
     void accept(ASTVisitor& visitor) override;
 };
 
@@ -141,8 +117,8 @@ struct CallExpr : Expr {
 // Доступ к члену объекта
 struct MemberAccessExpr : Expr {
     ExprPtr object;
-    std::string member;
-    MemberAccessExpr(ExprPtr obj, const std::string& mem) : object(std::move(obj)), member(mem) {}
+    ExprPtr member;
+    MemberAccessExpr(ExprPtr obj, ExprPtr mem) : object(std::move(obj)), member(std::move(mem)) {}
     void accept(ASTVisitor& visitor) override;
 };
 
@@ -156,9 +132,9 @@ struct ArrayAccessExpr : Expr {
 
 // Узел для приведения типов
 struct CastExpr : Expr {
-    std::string type;
+    TypePtr type;
     ExprPtr operand;
-    CastExpr(const std::string& t, ExprPtr o) : type(t), operand(std::move(o)) {}
+    CastExpr(TypePtr t, ExprPtr o) : type(t), operand(std::move(o)) {}
     void accept(ASTVisitor& visitor) override;
 };
 
@@ -228,15 +204,15 @@ struct ContinueStmt : Stmt {
 
 // Инструкция вывода
 struct PrintStmt : Stmt {
-    ExprPtr expr;
-    PrintStmt(ExprPtr e) : expr(std::move(e)) {}
+    std::vector<ExprPtr> expr;
+    PrintStmt(const std::vector<ExprPtr>& e) : expr(std::move(e)) {}
     void accept(ASTVisitor& visitor) override;
 };
 
 // Инструкция ввода
 struct ReadStmt : Stmt {
     ExprPtr expr;
-    ReadStmt(ExprPtr name) : expr(name) {}
+    ReadStmt(ExprPtr name) : expr(std::move(name)) {}
     void accept(ASTVisitor& visitor) override;
 };
 
@@ -262,18 +238,19 @@ struct VarDecl : Decl {
     TypePtr type;
     std::vector<Variable> variables; // name, init, size
     Modifiers modifiers;
-    VarDecl(const TypePtr type, std::vector<Variable> variables, Modifiers mods) : 
+    VarDecl(const TypePtr type, std::vector<Variable> variables, const Modifiers& mods) : 
         type(type), variables(std::move(variables)), modifiers(mods) {}
     void accept(ASTVisitor& visitor) override;
 };
 
 // Декларация typedef
 struct TypedefDecl : Decl {
-    std::string original_type;
-    std::string alias_name;
+    Modifiers original_modifiers;
+    TypePtr original_type;
+    std::string alias_name;     //псевдоним
 
-    TypedefDecl(const std::string& original, const std::string& alias)
-        : original_type(original), alias_name(alias) {}
+    TypedefDecl(const Modifiers& orig_mods, const TypePtr& orig_types, const std::string& alias) :
+        original_modifiers(orig_mods), original_type(orig_types), alias_name(alias) {}
 
     void accept(ASTVisitor& visitor) override;
 };
@@ -288,11 +265,12 @@ struct StructDecl : Decl {
 
 // Декларация функции
 struct FunctionDecl : Decl {
-    std::string return_type;    // enum и строка
+    Modifiers return_mods;
+    TypePtr return_type;    // enum и строка
     std::string name;
-    std::vector<std::pair<std::string, std::string>> params;    // param_decl
+    std::vector<std::pair<std::pair<Modifiers, TypePtr>, std::string>> params;    // param_decl
     std::shared_ptr<BlockStmt> body;
-    FunctionDecl(const std::string& rt, const std::string& n, const std::vector<std::pair<std::string, std::string>>& p, std::shared_ptr<BlockStmt> b = nullptr) : 
+    FunctionDecl(const TypePtr rt, const std::string& n, const std::vector<std::pair<std::pair<Modifiers, TypePtr>, std::string>>& p, std::shared_ptr<BlockStmt> b = nullptr) : 
         return_type(rt), name(n), params(p), body(std::move(b)) {}
     void accept(ASTVisitor& visitor) override;
 };
@@ -307,9 +285,9 @@ struct AssertDecl : Decl {
 
 // Узел корня AST
 struct TranslationUnitNode : ASTNode {
-    std::vector<ASTNodePtr> statements; //declptr
+    std::vector<DeclPtr> decls; 
     TranslationUnitNode() = default;
-    TranslationUnitNode(std::vector<ASTNodePtr> st) : statements(std::move(st)) {}
+    TranslationUnitNode(std::vector<DeclPtr> decls) : decls(std::move(decls)) {}
     void accept(ASTVisitor& visitor) override;
 };
 

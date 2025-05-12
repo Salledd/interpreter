@@ -39,11 +39,15 @@ void PrintVisitor::visit(UnaryExpr& expr)  {
 
 void PrintVisitor::visit(SizeofExpr& expr)  { 
     std::cout << "Sizeof(";
-    if (expr.type) {
-        std::cout << expr.type->get_name() << ")";
-    } else {
+    if(expr.operand) {
         expr.operand.get()->accept(*this); 
         std::cout << ")";
+    } else {
+        if(auto type = std::get_if<TypePtr>(&expr.type)) {
+            std::cout << (*type)->get_name() << ")";
+        } else if (auto expr_ptr = std::get_if<ExprPtr>(&expr.type)) {
+            (*expr_ptr).get()->accept(*this);
+        }
     }
 }
 
@@ -169,7 +173,10 @@ void PrintVisitor::visit(ContinueStmt&)  {
 
 void PrintVisitor::visit(PrintStmt& stmt)  { 
     std::cout << "Print(";
-    stmt.expr.get()->accept(*this); 
+    for(auto& expr : stmt.expr) {
+        std::cout << ", ";
+        expr.get()->accept(*this);
+    }
     std::cout << ")";
 }
 
@@ -185,12 +192,7 @@ void PrintVisitor::visit(ExitStmt& stmt)  {
 
 void PrintVisitor::visit(VarDecl& decl) {
     std::cout << "VarDecl(";
-    for (const auto& mod : decl.modifiers.mods) {
-        if (mod == Modifier::Const) std::cout << "Const";
-        else if (mod == Modifier::Static) std::cout << "Static";
-        else if (mod == Modifier::Unsigned) std::cout << "Unsigned";
-        std::cout << " ";
-    }
+    std::cout << decl.modifiers.get_str();
     std::cout << decl.type->get_name() << ", [";
     for (const auto& variable : decl.variables) {
         std::cout << variable.name;
@@ -218,9 +220,10 @@ void PrintVisitor::visit(StructDecl& decl)  {
 }
 
 void PrintVisitor::visit(FunctionDecl& decl)  { 
-    std::cout << "Func(" << decl.return_type << " " << decl.name << ", [";
+    std::cout << "Func(";
+    std::cout << decl.return_mods.get_str() << decl.return_type->get_name() << " " << decl.name << ", [";
     for (auto& param : decl.params) {
-        std::cout << param.first << " " << param.second;
+        std::cout << param.first.first.get_str() << param.first.second->get_name() << " " << param.second; // модификаторы, тип и имя параметра
         if (&param != &decl.params.back()) std::cout << ", ";
     }
     std::cout << "], ";
@@ -230,8 +233,8 @@ void PrintVisitor::visit(FunctionDecl& decl)  {
 
 void PrintVisitor::visit(TranslationUnitNode& node)  {
     std::cout << "Program([" << std::endl;
-    for (auto& stmt : node.statements) {
-        stmt.get()->accept(*this);
+    for (auto& decl : node.decls) {
+        decl.get()->accept(*this);
         std::cout << std::endl;
     }
     std::cout << "])" << std::endl;
